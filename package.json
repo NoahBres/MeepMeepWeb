@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "react": "^17.0.0",
-    "react-dom": "^17.0.0"
+    "react-dom": "^17.0.0",
+    "roadrunnerjs": "file:RoadRunnerJS/build/js/packages/RoadRunnerJS"
   },
   "devDependencies": {
     "@types/react": "^17.0.0",
