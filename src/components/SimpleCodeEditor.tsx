@@ -53,11 +53,11 @@ const SimpleCodeEditor = ({ onChange }: Props) => {
     };
   }, []);
 
-  const renderedText = tokenize(sourceText, "java").map((e) => {
+  const renderedText = tokenize(sourceText, "java").map((e, i) => {
     if (e.token === "whitespace" && e.text === "\n") return <br />;
 
     return (
-      <span className={`token-${e.token}`}>
+      <span className={`token-${e.token}`} key={i}>
         {e.text
           .replace(new RegExp("&", "g"), "&amp;")
           .replace(new RegExp("<", "g"), "&lt;")}
@@ -65,10 +65,24 @@ const SimpleCodeEditor = ({ onChange }: Props) => {
     );
   });
 
+  // TODO Replace with styled component or something
+  const editingCodeSharedStyle =
+    "absolute w-full h-full px-2 py-4 overflow-auto font-mono text-xs leading-normal editing t-0 l-0";
+
   return (
     <div className="w-full h-full code-editor">
+      <pre
+        // style={{ zIndex: 0 }}
+        className={`${editingCodeSharedStyle} highlighting`}
+        aria-hidden="true"
+        ref={highlightingRef}
+      >
+        <code>{renderedText}</code>
+      </pre>
       <textarea
-        className="editing"
+        placeholder="Paste your code here!"
+        className={`${editingCodeSharedStyle} editing`}
+        // style={{ zIndex: 1 }}
         spellCheck="false"
         value={sourceText}
         onChange={(evt) => {
@@ -77,9 +91,6 @@ const SimpleCodeEditor = ({ onChange }: Props) => {
         wrap="off"
         ref={textAreaRef}
       />
-      <pre className="highlighting" aria-hidden="true" ref={highlightingRef}>
-        <code>{renderedText}</code>
-      </pre>
     </div>
   );
 };

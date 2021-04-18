@@ -2,26 +2,7 @@
   position: relative;
 }
 
-.code-editor .highlighting,
 .code-editor .editing {
-  padding: 10px;
-  height: 100%;
-  width: 100%;
-
-  position: absolute;
-  top: 0;
-  left: 0;
-
-  overflow: auto;
-
-  font-size: 1rem;
-  font-family: monospace;
-  line-height: 1.4;
-}
-
-.code-editor .editing {
-  z-index: 1;
-
   color: transparent;
   background: transparent;
   caret-color: black;
@@ -34,7 +15,6 @@
 }
 
 .code-editor .highlighting {
-  z-index: 0;
 }
 
 .code-editor .highlighting code {
@@ -50,7 +30,7 @@
 }
 
 .token-keyword {
-  --code-text-highlight: red;
+  --code-text-highlight: theme("colors.pink.600");
 }
 
 .token-string {
@@ -58,5 +38,14 @@
 }
 
 .token-number {
-  --code-text-highlight: blue;
+  --code-text-highlight: theme("colors.blue.600");
+}
+
+.token-operator,
+.token-semicolon {
+  --code-text-highlight: theme("colors.gray.900");
+}
+
+.token-unknown {
+  --code-text-highlight: theme("colors.orange.600");
 }
