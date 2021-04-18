@@ -7,9 +7,12 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "autoprefixer": "^10.2.5",
+    "postcss": "^8.2.10",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
-    "roadrunnerjs": "file:RoadRunnerJS/build/js/packages/RoadRunnerJS"
+    "roadrunnerjs": "file:RoadRunnerJS/build/js/packages/RoadRunnerJS",
+    "tailwindcss": "^2.1.1"
   },
   "devDependencies": {
     "@types/react": "^17.0.0",
