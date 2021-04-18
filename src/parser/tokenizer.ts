@@ -61,60 +61,79 @@ const tokenizeJava = (text: string): Token[] => {
   while (cursor < text.length) {
     currChar = text[cursor];
 
-    if (currChar === `"`) {
-      if (currentContextGuess !== "string") {
+    (() => {
+      // Context dependent parsing
+      if (currentContextGuess === "string") {
+        if (currChar === `"`) {
+          // Close the string
+          newContext("string");
+          flushContext();
+
+          return;
+        }
+      } else if (currentContextGuess === "operator") {
+        if (!operators.includes(currChar)) {
+          flushContext();
+        }
+      }
+
+      if (currChar === `"`) {
+        // Open the string
         flushContext();
         currentContextGuess = "string";
         newContext("string");
-      } else {
-        newContext("string");
-        flushContext();
-      }
-    } else if (operators.includes(currChar)) {
-      if (currentContext.length === 0) {
-        currentContextGuess = "operator";
-        newContext("operator");
-      } else if (currentContextGuess === "operator") {
-        newContext("operator");
-      } else {
-        flushContext();
-        currentContextGuess = "operator";
-        newContext("operator");
-      }
-    } else if (
-      (currentContextGuess === "operator" && flushContext() && false) ||
-      [" ", "\t", "\n"].includes(currChar)
-    ) {
-      if (
-        keywords.includes(
-          currentContext.reduce((acc, curr) => `${acc}${curr.text}`, "")
-        )
-      ) {
-        currentContextGuess = "keyword";
-      }
 
-      flushContext();
-      newToken("whitespace");
-    } else if (!isNaN(parseInt(currChar))) {
-      if (currentContext.length !== 0 && currentContextGuess !== "number") {
-        newContext("unknown");
+        return;
+      } else if (operators.includes(currChar)) {
+        flushContext();
+        currentContextGuess = "operator";
+        newContext("operator");
+
+        return;
+      } else if ([" ", "\t", "\n"].includes(currChar)) {
+        if (
+          keywords.includes(
+            currentContext.reduce((acc, curr) => `${acc}${curr.text}`, "")
+          )
+        ) {
+          currentContextGuess = "keyword";
+        }
+
+        flushContext();
+        newToken("whitespace");
+
+        return;
+      } else if (!isNaN(parseInt(currChar))) {
+        if (currentContext.length !== 0 && currentContextGuess !== "number") {
+          newContext("unknown");
+
+          return;
+        } else {
+          currentContextGuess = "number";
+          newContext("number");
+
+          return;
+        }
+      } else if (
+        currChar === "." &&
+        (currentContextGuess !== "number" ||
+          currentContext.find((e) => e.text === "."))
+      ) {
+        flushContext();
+        newToken("dot");
+
+        return;
+      } else if (currChar === ",") {
+        flushContext();
+        newToken("comma");
+
+        return;
       } else {
-        currentContextGuess = "number";
-        newContext("number");
+        newContext("unknown");
+
+        return;
       }
-    } else if (
-      currChar === "." &&
-      (currentContextGuess !== "number" ||
-        currentContext.find((e) => e.text === "."))
-    ) {
-      flushContext();
-      newToken("dot");
-    } else if (currChar === ",") {
-      flushContext();
-      newToken("comma");
-    } else {
-      newContext("unknown");
-    }
+    })();
 
     if (cursor === text.length - 1) {
       flushContext();
