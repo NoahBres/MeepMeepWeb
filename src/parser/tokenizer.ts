@@ -119,6 +119,23 @@ const tokenizeJava = (text: string): Token[] => {
         } else {
           flushContext();
         }
+      } else if (currentContextGuess === "number") {
+        if (currChar === "e") {
+          if (currentContext.every((e) => e.text !== "e")) {
+            newContext("number");
+            return;
+          } else {
+            flushContext();
+            newContext("unknown");
+            return;
+          }
+        } else if (
+          ["-", "+"].includes(currChar) &&
+          currentContext[currentContext.length - 1].text === "e"
+        ) {
+          newContext("number");
+          return;
+        }
       }
 
       if (currChar === `"`) {
