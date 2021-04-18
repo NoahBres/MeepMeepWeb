@@ -1,6 +1,7 @@
 const tokenize = (text: string, language: "java" | "kotlin") => {
   if (language === "java") return tokenizeJava(text);
   else if (language === "kotlin") return tokenizeKotlin(text);
+  else return [];
 };
 
 export type Tokens =
@@ -16,7 +17,7 @@ export type Tokens =
   | "string"
   | "unknown";
 
-type Token = {
+export type Token = {
   text: string;
   token: Tokens;
 };
@@ -36,10 +37,10 @@ const tokenizeJava = (text: string): Token[] => {
 
   const flushContext = () => {
     if (currentContext.length > 0) {
-      console.log("flush", {
-        text: currentContext.reduce((acc, curr) => `${acc}${curr.text}`, ""),
-        token: currentContextGuess,
-      });
+      // console.log("flush", {
+      //   text: currentContext.reduce((acc, curr) => `${acc}${curr.text}`, ""),
+      //   token: currentContextGuess,
+      // });
       tokenList.push({
         text: currentContext.reduce((acc, curr) => `${acc}${curr.text}`, ""),
         token: currentContextGuess,
@@ -50,7 +51,7 @@ const tokenizeJava = (text: string): Token[] => {
     currentContextGuess = "unknown";
   };
   const newToken = (token: Tokens) => {
-    console.log("new", { text: currChar, token });
+    // console.log("new", { text: currChar, token });
     tokenList.push({ text: currChar, token });
   };
   const newContext = (token: Tokens) => {
@@ -90,9 +91,9 @@ const tokenizeJava = (text: string): Token[] => {
         )
       ) {
         currentContextGuess = "keyword";
-        flushContext();
       }
 
+      flushContext();
       newToken("whitespace");
     } else if (!isNaN(parseInt(currChar))) {
       if (currentContext.length !== 0 && currentContextGuess !== "number") {
@@ -124,6 +125,7 @@ const tokenizeJava = (text: string): Token[] => {
 
 const tokenizeKotlin = (text: string) => {
   console.log("not supported");
+  return [];
 };
 
 export default tokenize;
