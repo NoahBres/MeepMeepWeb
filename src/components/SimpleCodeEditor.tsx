@@ -23,10 +23,33 @@ const SimpleCodeEditor = ({ onChange }: Props) => {
       }
     };
 
+    const checkTab = (e: KeyboardEvent) => {
+      const textArea = textAreaRef.current;
+
+      if (textArea) {
+        if (e.key === "Tab") {
+          e.preventDefault();
+
+          const start = textArea.selectionStart;
+          const end = textArea.selectionEnd;
+
+          textArea.value = `${textArea.value.substring(
+            0,
+            start
+          )}\t${textArea.value.substring(end)}`;
+          textArea.selectionStart = textArea.selectionEnd = start + 1;
+
+          setSourceText(textArea.value);
+        }
+      }
+    };
+
     textAreaRef.current?.addEventListener("scroll", onScroll);
+    textAreaRef.current?.addEventListener("keydown", checkTab);
 
     return () => {
       textAreaRef.current?.removeEventListener("scroll", onScroll);
+      textAreaRef.current?.removeEventListener("keydown", checkTab);
     };
   }, []);
 
