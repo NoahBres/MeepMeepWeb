@@ -185,6 +185,10 @@ const tokenizeJava = (text: string): Token[] => {
         newToken("comma");
 
         return;
+      } else if (currChar === ";") {
+        flushContext();
+        newToken("semicolon");
+        return;
       } else {
         newContext("unknown");
 
