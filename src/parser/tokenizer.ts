@@ -102,7 +102,11 @@ const tokenizeJava = (text: string): Token[] => {
         currentContextGuess = "number";
         newContext("number");
       }
-    } else if (currChar === "." && currentContextGuess !== "number") {
+    } else if (
+      currChar === "." &&
+      (currentContextGuess !== "number" ||
+        currentContext.find((e) => e.text === "."))
+    ) {
       flushContext();
       newToken("dot");
     } else if (currChar === ",") {
