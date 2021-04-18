@@ -22,7 +22,26 @@ export type Token = {
   token: Tokens;
 };
 
-const operators = ["(", ")", "-", "+", "*", "/", "=", "<", ">"];
+const operators = [
+  "(",
+  ")",
+  "-",
+  "+",
+  "*",
+  "/",
+  "=",
+  "<",
+  ">",
+  "<=",
+  ">=",
+  "--",
+  "++",
+  "*=",
+  "/=",
+  "-=",
+  "+=",
+];
+const singleCharOperators = ["(", ")"];
 
 const keywords = ["new"];
 
@@ -58,6 +77,10 @@ const tokenizeJava = (text: string): Token[] => {
     currentContext.push({ text: currChar, token });
   };
 
+  const reduceContext = () => {
+    return currentContext.reduce((acc, curr) => `${acc}${curr.text}`, "");
+  };
+
   while (cursor < text.length) {
     currChar = text[cursor];
 
@@ -72,7 +95,28 @@ const tokenizeJava = (text: string): Token[] => {
           return;
         }
       } else if (currentContextGuess === "operator") {
-        if (!operators.includes(currChar)) {
+        if (
+          isNumber(currChar) &&
+          currentContext.length === 1 &&
+          ["+", "-"].includes(currentContext[0].text)
+        ) {
+          currentContextGuess = "number";
+          newContext("number");
+          return;
+        } else if (currentContext.length === 1) {
+          if (singleCharOperators.includes(currentContext[0].text)) {
+            flushContext();
+          } else if (operators.includes(`${reduceContext}${currChar}`)) {
+            newContext("operator");
+            flushContext();
+            return;
+          }
+        } else if (
+          currentContext.length === 2 &&
+          operators.includes(reduceContext())
+        ) {
+          flushContext();
+        } else {
           flushContext();
         }
       }
@@ -91,11 +135,7 @@ const tokenizeJava = (text: string): Token[] => {
 
         return;
       } else if ([" ", "\t", "\n"].includes(currChar)) {
-        if (
-          keywords.includes(
-            currentContext.reduce((acc, curr) => `${acc}${curr.text}`, "")
-          )
-        ) {
+        if (keywords.includes(reduceContext())) {
           currentContextGuess = "keyword";
         }
 
@@ -103,7 +143,7 @@ const tokenizeJava = (text: string): Token[] => {
         newToken("whitespace");
 
         return;
-      } else if (!isNaN(parseInt(currChar))) {
+      } else if (isNumber(currChar)) {
         if (currentContext.length !== 0 && currentContextGuess !== "number") {
           newContext("unknown");
 
@@ -152,3 +192,7 @@ const tokenizeKotlin = (text: string) => {
 };
 
 export default tokenize;
+
+function isNumber(text: string) {
+  return !isNaN(parseInt(text));
+}
