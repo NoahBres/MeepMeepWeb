@@ -1,14 +1,18 @@
 import React, { useState, useRef, useEffect } from "react";
 
 import { Menu, Transition } from "@headlessui/react";
-import { ChevronDownIcon } from "@heroicons/react/solid";
+import { ChevronDownIcon, DotsVerticalIcon } from "@heroicons/react/solid";
+
+import { DraggableCore } from "react-draggable";
 
 import SimpleCodeEditor from "./components/SimpleCodeEditor/SimpleCodeEditor";
 import { Token } from "./parser/tokenizer";
 
+const MIN_WIDTH_DEV_PANEL = 300;
+
 function App() {
   const [devPanelWidth, setDevPanelWidth] = useState(400);
-  const [codePanelHeight, setCodePanelHeight] = useState(50);
+  const [codePanelHeight, setCodePanelHeight] = useState(200);
 
   const onEditorChange = (text: Token[]) => {
     console.log(text);
@@ -19,11 +23,24 @@ function App() {
       className="grid w-full h-screen"
       style={{ gridTemplateColumns: `1fr ${devPanelWidth}px` }}
     >
-      <div className="relative border border-gray-100"></div>
+      <div className="relative border border-gray-100">
+        <DraggableCore
+          onDrag={(_, { deltaX }) =>
+            setDevPanelWidth((prev) =>
+              Math.max(prev - deltaX, MIN_WIDTH_DEV_PANEL)
+            )
+          }
+        >
+          <div className="group absolute top-0 right-0 flex justify-center items-center w-3 h-full transform translate-x-1.5 cursor-col-resize">
+            <div className="h-full w-0.5 group-hover:w-2 bg-gray-100 group-hover:border-gray-300 border-transparent border-l-[1px] border-r-[1px] transition-all delay-75"></div>
+            <DotsVerticalIcon className="absolute w-4 h-4 text-gray-400 transition delay-75 transform scale-75 opacity-0 group-hover:opacity-100 group-hover:scale-100" />
+          </div>
+        </DraggableCore>
+      </div>
       <div
         className="grid"
         style={{
-          gridTemplateRows: `${codePanelHeight}% ${100 - codePanelHeight}%`,
+          gridTemplateRows: `1fr ${codePanelHeight}px`,
         }}
       >
         <div className="flex flex-col px-3 py-2 border border-gray-100 bg-gray-50">
@@ -80,7 +97,9 @@ function App() {
           </div>
           <SimpleCodeEditor onChange={onEditorChange} />
         </div>
-        <div className="border border-gray-100"></div>
+        <div className="grid border border-gray-100 place-items-center">
+          <h3>TBD Panel</h3>
+        </div>
       </div>
     </main>
   );
