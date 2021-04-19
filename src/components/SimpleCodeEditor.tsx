@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 
 import tokenize, { Token } from "../parser/tokenizer";
 
-import "./SimpleCodeEditor.css";
+import styles from "./SimpleCodeEditor.module.css";
 
 type Props = {
   onChange?: (text: Token[]) => void;
@@ -54,10 +54,10 @@ const SimpleCodeEditor = ({ onChange }: Props) => {
   }, []);
 
   const renderedText = tokenize(sourceText, "java").map((e, i) => {
-    if (e.token === "whitespace" && e.text === "\n") return <br />;
+    if (e.token === "whitespace" && e.text === "\n") return <br key={i} />;
 
     return (
-      <span className={`token-${e.token}`} key={i}>
+      <span className={styles[`token-${e.token}`]} key={i}>
         {e.text
           .replace(new RegExp("&", "g"), "&amp;")
           .replace(new RegExp("<", "g"), "&lt;")}
@@ -65,15 +65,10 @@ const SimpleCodeEditor = ({ onChange }: Props) => {
     );
   });
 
-  // TODO Replace with styled component or something
-  const editingCodeSharedStyle =
-    "absolute w-full h-full px-2 py-4 overflow-auto font-mono text-xs leading-normal editing t-0 l-0";
-
   return (
-    <div className="w-full h-full code-editor">
+    <div className="relative w-full h-full">
       <pre
-        // style={{ zIndex: 0 }}
-        className={`${editingCodeSharedStyle} highlighting`}
+        className={styles.highlighter}
         aria-hidden="true"
         ref={highlightingRef}
       >
@@ -81,8 +76,7 @@ const SimpleCodeEditor = ({ onChange }: Props) => {
       </pre>
       <textarea
         placeholder="Paste your code here!"
-        className={`${editingCodeSharedStyle} editing`}
-        // style={{ zIndex: 1 }}
+        className={styles.editor}
         spellCheck="false"
         value={sourceText}
         onChange={(evt) => {

@@ -1,23 +1,18 @@
-.code-editor {
-  position: relative;
+.editor,
+.highlighter {
+  @apply absolute top-0 left-0;
+  @apply w-full h-full px-2 py-4;
+  @apply overflow-auto;
+  @apply font-mono text-xs leading-normal;
 }
 
-.code-editor .editing {
-  color: transparent;
-  background: transparent;
+.editor {
+  @apply text-transparent bg-transparent border-none resize-none;
+  @apply focus:outline-none focus:ring-0;
   caret-color: black;
-
-  resize: none;
 }
 
-.code-editor .editing:focus {
-  outline: none;
-}
-
-.code-editor .highlighting {
-}
-
-.code-editor .highlighting code {
+.highlighter code {
   font-size: inherit;
   font-family: inherit;
   line-height: inherit;
@@ -25,7 +20,7 @@
   --code-text-highlight: black;
 }
 
-.code-editor .highlighting code span {
+.highlighter code span {
   color: var(--code-text-highlight);
 }
 
@@ -34,7 +29,7 @@
 }
 
 .token-string {
-  --code-text-highlight: green;
+  --code-text-highlight: theme("colors.green.600");
 }
 
 .token-number {
