@@ -25,6 +25,8 @@ export type Token = {
 const operators = [
   "(",
   ")",
+  "{",
+  "}",
   "-",
   "+",
   "*",
@@ -41,7 +43,7 @@ const operators = [
   "-=",
   "+=",
 ];
-const singleCharOperators = ["(", ")"];
+const singleCharOperators = ["(", ")", "{", "}"];
 
 const keywords = ["new"];
 
@@ -203,7 +205,6 @@ const tokenizeJava = (text: string): Token[] => {
     cursor++;
   }
 
-  console.log(tokenList.map((e) => [e.text, e.token]));
   return tokenList;
 };
 
