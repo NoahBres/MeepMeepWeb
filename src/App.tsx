@@ -1,22 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/solid";
 
-import SimpleCodeEditor from "./components/SimpleCodeEditor";
+import SimpleCodeEditor from "./components/SimpleCodeEditor/SimpleCodeEditor";
 import { Token } from "./parser/tokenizer";
 
-const testString = ` drive.trajectorySequenceBuilder(new Pose2d(0.0, 0, 0), "test")
-  .splineTo(new Vector2d(18, 18), Math.toRadians(45))
-  .setVelConstraint(SampleMecanumDrive.getVelocityConstraint(20, Math.toRadians(180), 15))
-  .splineTo(new Vector2d(36, 36), Math.toRadians(0))
-  .resetConstraints()
-  .splineTo(new Vector2d(72, 0), Math.toRadians(0))
-
-  .build();`;
-
 function App() {
-  const [devPanelWidth, devPanelHeight] = useState(400);
+  const [devPanelWidth, setDevPanelWidth] = useState(400);
   const [codePanelHeight, setCodePanelHeight] = useState(50);
 
   const onEditorChange = (text: Token[]) => {
@@ -28,7 +19,7 @@ function App() {
       className="grid w-full h-screen"
       style={{ gridTemplateColumns: `1fr ${devPanelWidth}px` }}
     >
-      <div className="border border-gray-100"></div>
+      <div className="relative border border-gray-100"></div>
       <div
         className="grid"
         style={{
