@@ -4,9 +4,7 @@ import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/solid";
 
 import SimpleCodeEditor from "./components/SimpleCodeEditor";
-import tokenize, { Token } from "./parser/tokenizer";
-
-// import { trajectory } from "roadrunnerjs";
+import { Token } from "./parser/tokenizer";
 
 const testString = ` drive.trajectorySequenceBuilder(new Pose2d(0.0, 0, 0), "test")
   .splineTo(new Vector2d(18, 18), Math.toRadians(45))
@@ -18,30 +16,8 @@ const testString = ` drive.trajectorySequenceBuilder(new Pose2d(0.0, 0, 0), "tes
   .build();`;
 
 function App() {
-  // useEffect(() => {
-  //   // const t = new trajectory.TrajectoryBuilder()
-  // }, []);
-
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-
   const [devPanelWidth, devPanelHeight] = useState(400);
   const [codePanelHeight, setCodePanelHeight] = useState(50);
-
-  useEffect(() => {
-    // tokenize(testString.trimStart().trimEnd(), "java");
-  }, []);
-
-  useEffect(() => {
-    const pastEventListener = () => {
-      console.log("pasted");
-    };
-
-    textAreaRef.current?.addEventListener("paste", pastEventListener);
-
-    return () => {
-      textAreaRef.current?.removeEventListener("paste", pastEventListener);
-    };
-  }, []);
 
   const onEditorChange = (text: Token[]) => {
     console.log(text);
@@ -115,16 +91,6 @@ function App() {
         </div>
         <div className="border border-gray-100"></div>
       </div>
-      {/* <div className="overflow-hidden bg-white rounded shadow w-96 h-96"> */}
-      {/* <textarea
-          ref={textAreaRef}
-          className="w-full h-full p-5 focus:outline-none"
-          placeholder="Paste or type your code!"
-          wrap="off"
-          value={testString}
-        /> */}
-      {/* <SimpleCodeEditor onChange={onEditorChange} /> */}
-      {/* </div> */}
     </main>
   );
 }
