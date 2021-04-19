@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-import tokenize, { Token } from "../parser/tokenizer";
+import tokenize, { Token } from "../../parser/tokenizer";
 
 import styles from "./SimpleCodeEditor.module.css";
 
