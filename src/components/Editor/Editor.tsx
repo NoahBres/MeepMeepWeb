@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 
 import tokenize, { Token } from "../../parser/tokenizer";
 
-import styles from "./SimpleCodeEditor.module.css";
+import styles from "./Editor.module.css";
 
 type Props = {
   onChange?: (text: Token[]) => void;
 };
 
-const SimpleCodeEditor = ({ onChange }: Props) => {
+const Editor = ({ onChange }: Props) => {
   const highlightingRef = useRef<HTMLPreElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -89,4 +89,4 @@ const SimpleCodeEditor = ({ onChange }: Props) => {
   );
 };
 
-export default SimpleCodeEditor;
+export default Editor;

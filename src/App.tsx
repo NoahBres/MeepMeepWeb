@@ -5,7 +5,7 @@ import { ChevronDownIcon, DotsVerticalIcon } from "@heroicons/react/solid";
 
 import { DraggableCore } from "react-draggable";
 
-import SimpleCodeEditor from "./components/SimpleCodeEditor/SimpleCodeEditor";
+import Editor from "./components/Editor/Editor";
 import { Token } from "./parser/tokenizer";
 
 const MIN_WIDTH_DEV_PANEL = 300;
@@ -95,7 +95,7 @@ function App() {
               )}
             </Menu>
           </div>
-          <SimpleCodeEditor onChange={onEditorChange} />
+          <Editor onChange={onEditorChange} />
         </div>
         <div className="grid border border-gray-100 place-items-center">
           <h3>TBD Panel</h3>
