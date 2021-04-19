@@ -12,6 +12,7 @@
     "@tailwindcss/forms": "^0.3.2",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
+    "react-draggable": "^4.4.3",
     "roadrunnerjs": "file:RoadRunnerJS/build/js/packages/RoadRunnerJS"
   },
   "devDependencies": {
