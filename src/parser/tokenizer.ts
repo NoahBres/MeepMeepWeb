@@ -1,3 +1,5 @@
+import { isNumber } from "./util";
+
 const tokenize = (text: string, language: "java" | "kotlin") => {
   if (language === "java") return tokenizeJava(text);
   else if (language === "kotlin") return tokenizeKotlin(text);
@@ -214,7 +216,3 @@ const tokenizeKotlin = (text: string) => {
 };
 
 export default tokenize;
-
-function isNumber(text: string) {
-  return !isNaN(parseInt(text));
-}

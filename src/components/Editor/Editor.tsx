@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
+import parse from "../../parser/parser";
 import tokenize, { Token } from "../../parser/tokenizer";
 
 import styles from "./Editor.module.css";
@@ -13,6 +14,8 @@ const Editor = ({ onChange }: Props) => {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const [sourceText, setSourceText] = useState("");
+
+  const [tokenizedText, setTokenizedText] = useState<Token[]>([]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -53,7 +56,16 @@ const Editor = ({ onChange }: Props) => {
     };
   }, []);
 
-  const renderedText = tokenize(sourceText, "java").map((e, i) => {
+  useEffect(() => {
+    setTokenizedText(tokenize(sourceText, "java"));
+  }, [sourceText]);
+
+  useEffect(() => {
+    console.log("--------Parsing--------");
+    console.log(parse(sourceText, tokenizedText));
+  }, [tokenizedText]);
+
+  const renderedText = tokenizedText.map((e, i) => {
     if (e.token === "whitespace" && e.text === "\n") return <br key={i} />;
 
     return (
