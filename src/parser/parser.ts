@@ -39,6 +39,13 @@ const StandardResultSuccess = (warnings: string[] = []) => ({
   warnings,
 });
 
+type BuilderCallTypes = {
+  name: "splineTo";
+  data: {
+    endPosisition: Vector2d;
+    endTangent: number;
+  };
+};
 type TrajectorySequenceBuilder = {
   startPose: {
     x: number;
@@ -46,6 +53,70 @@ type TrajectorySequenceBuilder = {
     heading: number;
   };
   builderCalls: unknown[];
+};
+
+type TranslationMethod = {
+  parameterTypes: KnownTypes[];
+  returnType: KnownTypes;
+};
+type TranslationMetaType = {
+  [key in RoadRunnerTypes]: {
+    methods?: {
+      [key: string]: TranslationMethod[];
+    };
+  };
+};
+const TranslationMeta: TranslationMetaType = {
+  TrajectorySequenceBuilder: {
+    methods: {
+      splineTo: [
+        {
+          parameterTypes: ["Vector2d", "number"],
+          returnType: "TrajectorySequenceBuilder",
+        },
+      ],
+      lineTo: [
+        {
+          parameterTypes: ["Vector2d"],
+          returnType: "TrajectorySequenceBuilder",
+        },
+      ],
+      forward: [
+        {
+          parameterTypes: ["number"],
+          returnType: "TrajectorySequenceBuilder",
+        },
+      ],
+      resetConstraints: [
+        {
+          parameterTypes: [],
+          returnType: "TrajectorySequenceBuilder",
+        },
+      ],
+      build: [
+        {
+          parameterTypes: [],
+          returnType: "TrajectorySequence",
+        },
+      ],
+    },
+  },
+  TrajectorySequence: {},
+  Vector2d: {
+    // TODO Move the constructor parameter verification here
+  },
+  Pose2d: {},
+};
+
+type Pose2d = {
+  x: number;
+  y: number;
+  heading: number;
+};
+
+type Vector2d = {
+  x: number;
+  y: number;
 };
 
 export default function parse(
@@ -123,80 +194,6 @@ type ExtractFromExpressionStatementReturn =
 function extractFromExpressionStatement({
   expression,
 }: ExpressionStatement): ExtractFromExpressionStatementReturn {
-  const trajectorySequenceFromSMDBuilder = (
-    nodeList: BaseNode[]
-  ): ExtractTSBReturn => {
-    const returnTSB: TrajectorySequenceBuilder = {
-      startPose: { x: 0, y: 0, heading: 0 },
-      builderCalls: [],
-    };
-
-    for (const [i, node] of nodeList.entries()) {
-      console.log(node);
-
-      if (i === 1) {
-        if (node.type === "CallExpression") {
-          const callExpression = node as CallExpression;
-
-          if (callExpression.arguments.length === 1) {
-            const arg = callExpression.arguments[0];
-
-            if (
-              arg.type === "NewExpression" &&
-              arg.callee.type === "Identifier"
-            ) {
-              const identifier = arg.callee as Identifier;
-              if (identifier.name === "Pose2d") {
-                // continue reading the params
-                const pose2dArgs = arg.arguments;
-
-                // TODO Finish this
-                console.log(verifyNewExpression(arg));
-
-                const verifyExpression = verifyNewExpression(arg);
-                if (verifyExpression.success) {
-                } else {
-                  return throwError(verifyExpression.errors);
-                }
-              } else {
-                const firstMember = nodeList[0] as MemberExpression;
-
-                return throwError(
-                  `A Pose2d object was expected as the first parameter for ${
-                    (firstMember.object as Identifier).name
-                  }.trajectoryBuilder()`
-                );
-              }
-            } else {
-              // TODO: Implement reading values for this
-              const firstMember = nodeList[0] as MemberExpression;
-
-              return throwError(
-                `Only new expressions are supported at the moment for ${
-                  (firstMember.object as Identifier).name
-                }.trajectoryBuilder()`
-              );
-            }
-          } else {
-            const firstMember = nodeList[0] as MemberExpression;
-
-            return throwError(
-              `Expected a single argument for ${
-                (firstMember.object as Identifier).name
-              }.trajectorySequenceBuilder`
-            );
-          }
-        } else {
-          return throwError(
-            "Expected a CallExpression at the top of the stack"
-          );
-        }
-      }
-    }
-
-    return { success: true, trajectorySequence: returnTSB };
-  };
-
   switch (expression.type) {
     case "CallExpression": {
       const expressionValue = getCallExpressionValue(
@@ -229,13 +226,13 @@ function extractFromExpressionStatement({
 
 // We just pretend all number types (int, double, float, etc.) are numbers since JS numbers are all the same
 type JavaNativeTypes = "boolean" | "number" | "string" | "null";
-
-type KnownTypes =
-  | JavaNativeTypes
-  | "unknown"
-  | "void"
+type RoadRunnerTypes =
   | "TrajectorySequence"
-  | "TrajectorySequenceBuilder";
+  | "TrajectorySequenceBuilder"
+  | "Pose2d"
+  | "Vector2d";
+
+type KnownTypes = JavaNativeTypes | RoadRunnerTypes | "unknown" | "void";
 
 const TypeCheck = (input: string): KnownTypes => {
   if (input === null) return "unknown";
@@ -256,7 +253,7 @@ type VerifyParametersReturnType =
   | (ReturnType<typeof StandardResultSuccess> & { paramValues: any[] })
   | ReturnType<typeof StandardResultError>;
 
-const VerifyParameters = ({
+const verifyParameters = ({
   identifier,
   expectedLength,
   parameters,
@@ -284,13 +281,15 @@ const VerifyParameters = ({
   const paramValues: any[] = [];
 
   for (const [i, param] of parameters.entries()) {
-    const type = parameterTypes[i];
-    let value: any = null;
+    const expectedType = parameterTypes[i];
+    let paramVal: any = null;
+    let paramType: KnownTypes | null = null;
 
     if (param.type === "Literal") {
       const literal = param as Literal;
 
-      value = literal.value ?? "";
+      paramVal = literal.value ?? "";
+      paramType = TypeCheck(paramVal);
     } else if (param.type === "CallExpression") {
       const evalCall = getCallExpressionValue(
         callExpressionTreeToList(param as CallExpression, []),
@@ -298,15 +297,22 @@ const VerifyParameters = ({
       );
       if (!evalCall.success) return evalCall;
 
-      value = evalCall.payload.value;
+      paramVal = evalCall.payload.value;
+      paramType = evalCall.payload.type;
+    } else if (param.type === "NewExpression") {
+      const evalNew = getNewExpressionValue(param as NewExpression);
+
+      if (!evalNew.success) return evalNew;
+
+      paramVal = evalNew.payload.value;
+      paramType = evalNew.payload.type;
     }
 
-    const valType = TypeCheck(value);
-    if (valType !== type) {
-      return StandardResultError(`Expected ${type} got ${valType}`);
+    if (paramType !== expectedType) {
+      return StandardResultError(`Expected ${expectedType} got ${paramType}`);
     }
 
-    paramValues.push(value);
+    if (paramVal !== null) paramValues.push(paramVal);
   }
 
   return {
@@ -316,34 +322,79 @@ const VerifyParameters = ({
   };
 };
 
-type KnownExpressionVerify<T> = (expression: T) => StandardResult;
+type GetNewExpressionValueReturn =
+  | {
+      success: true;
+      warnings: string[];
+      payload:
+        | { type: "Pose2d"; value: Pose2d }
+        | { type: "Vector2d"; value: Vector2d };
+    }
+  | ReturnType<typeof StandardResultError>;
+function getNewExpressionValue(
+  expression: NewExpression
+): GetNewExpressionValueReturn {
+  if (expression.callee.type === "Identifier") {
+    switch (expression.callee.name) {
+      // TODO Move this elsewhere? colocate the logic w/the types in their own objects?
+      case "Pose2d": {
+        const evalParams = verifyParameters({
+          identifier: expression.callee.name,
+          expectedLength: 3,
+          parameterTypes: ["number", "number", "number"],
+          parameters: expression.arguments,
+        });
 
-type KnownExpressionValidator<T> = {
-  [key: string]: { verify: KnownExpressionVerify<T> };
-};
+        if (evalParams.success) {
+          return {
+            success: true,
+            warnings: [],
+            payload: {
+              type: "Pose2d",
+              value: {
+                x: evalParams.paramValues[0],
+                y: evalParams.paramValues[1],
+                heading: evalParams.paramValues[2],
+              },
+            },
+          };
+        } else {
+          return throwStandardResultError(evalParams.errors);
+        }
+      }
+      case "Vector2d": {
+        const evalParams = verifyParameters({
+          identifier: expression.callee.name,
+          expectedLength: 2,
+          parameterTypes: ["number", "number"],
+          parameters: expression.arguments,
+        });
 
-const KnownNewExpressionValidation: KnownExpressionValidator<NewExpression> = {
-  Pose2d: {
-    verify(expression: NewExpression) {
-      return VerifyParameters({
-        identifier: (expression.callee as Identifier).name,
-        expectedLength: 3,
-        parameters: expression.arguments,
-        parameterTypes: ["number", "number", "number"],
-      });
-    },
-  },
-};
-
-function verifyNewExpression(expression: NewExpression): StandardResult {
-  const identifier = (expression.callee as Identifier).name;
-  if (Object.keys(KnownNewExpressionValidation).includes(identifier)) {
-    return KnownNewExpressionValidation[identifier].verify(expression);
+        if (evalParams.success) {
+          return {
+            success: true,
+            warnings: [],
+            payload: {
+              type: "Vector2d",
+              value: {
+                x: evalParams.paramValues[0],
+                y: evalParams.paramValues[1],
+              },
+            },
+          };
+        } else {
+          return throwStandardResultError(evalParams.errors);
+        }
+      }
+      default:
+        return throwStandardResultError(
+          `Uknown New expression: ${expression.callee.name}`
+        );
+    }
   } else {
-    return {
-      success: false,
-      errors: ["Unrecognized new expression identifier"],
-    };
+    return throwStandardResultError(
+      "Expected new expression callee to be an Identifier"
+    );
   }
 }
 
@@ -504,25 +555,11 @@ type GetCallExpressionValueReturn =
       warnings: string[];
       payload: { type: KnownTypes; value: any };
     }
-  | { success: false; errors: string[] };
+  | ReturnType<typeof StandardResultError>;
 function getCallExpressionValue(
   currentStack: BaseNode[],
   lastValue: { type: KnownTypes; value: any } | null
 ): GetCallExpressionValueReturn {
-  const throwError = (err: string | string[]) => {
-    if (typeof err === "string") {
-      return {
-        success: false as const,
-        errors: [err],
-      };
-    } else {
-      return {
-        success: false as const,
-        errors: err,
-      };
-    }
-  };
-
   if (currentStack.length === 0) {
     if (lastValue === null) {
       return {
@@ -542,7 +579,9 @@ function getCallExpressionValue(
   }
 
   if (currentStack.length < 2)
-    return throwError("Expected a minimum call stack length of 2");
+    return throwStandardResultError(
+      "Expected a minimum call stack length of 2"
+    );
 
   // The stack is backwards
   const first = currentStack[currentStack.length - 1];
@@ -559,7 +598,7 @@ function getCallExpressionValue(
         const javaMethod = JavaObj[member.object.name][member.property.name];
 
         if ("method" in javaMethod) {
-          const validateParams = VerifyParameters({
+          const validateParams = verifyParameters({
             identifier: member.property.name,
             expectedLength: javaMethod.paramTypes.length,
             parameters: call.arguments,
@@ -574,7 +613,7 @@ function getCallExpressionValue(
               value: value,
             });
           } else {
-            return throwError(validateParams.errors);
+            return throwStandardResultError(validateParams.errors);
           }
         } else if ("value" in javaMethod) {
           return getCallExpressionValue(currentStack.slice(0, -2), {
@@ -582,42 +621,118 @@ function getCallExpressionValue(
             value: javaMethod.value,
           });
         } else {
-          return throwError(
+          return throwStandardResultError(
             "Neither value nor method was found in the corresponding JavaObj"
           );
         }
       } else {
         if (member.property.name === "trajectorySequenceBuilder") {
-          console.log("I knew you were trouble");
+          const validateParams = verifyParameters({
+            identifier: member.property.name,
+            expectedLength: 1,
+            parameters: call.arguments,
+            parameterTypes: ["Pose2d"],
+          });
+
+          if (validateParams.success) {
+            const tsb: TrajectorySequenceBuilder = {
+              startPose: validateParams.paramValues[0],
+              builderCalls: [],
+            };
+            return getCallExpressionValue(currentStack.slice(0, -2), {
+              type: "TrajectorySequenceBuilder",
+              value: tsb,
+            });
+          } else {
+            return throwStandardResultError(validateParams.errors);
+          }
         } else {
-          return throwError(
+          return throwStandardResultError(
             `Unknown identifier: ${member.object.name}.${member.property.name}`
           );
         }
       }
     } else {
-      console.log(lastValue);
       if (lastValue !== null) {
-        const callableKnownType = [
-          "TrajectorySequence",
-          "TrajectorySequenceBuilder",
-        ];
+        if (
+          Object.keys(TranslationMeta)
+            .filter((e) => "methods" in TranslationMeta[e as RoadRunnerTypes])
+            .includes(lastValue.type)
+        ) {
+          if (member.property.type === "Identifier") {
+            const methods =
+              TranslationMeta[lastValue.type as RoadRunnerTypes].methods;
+            if (methods) {
+              if (Object.keys(methods).includes(member.property.name)) {
+                const method = methods[member.property.name];
+                const name = member.property.name;
 
-        if (callableKnownType.includes(lastValue.type)) {
-          console.log("broskii");
+                const loopValidateParams = method.map((e) => {
+                  return verifyParameters({
+                    identifier: `${lastValue.type}.${name}`,
+                    expectedLength: e.parameterTypes.length,
+                    parameters: call.arguments,
+                    parameterTypes: e.parameterTypes,
+                  });
+                });
+
+                const validParam = loopValidateParams.find((e) => e.success);
+                if (validParam !== undefined && validParam.success) {
+                  const tsb: TrajectorySequenceBuilder = {
+                    startPose: lastValue.value.startPose,
+                    builderCalls: [
+                      ...lastValue.value.builderCalls,
+                      {
+                        name: member.property.name,
+                        data: validParam.paramValues,
+                      },
+                    ],
+                  };
+
+                  return getCallExpressionValue(currentStack.slice(0, -2), {
+                    type: lastValue.type,
+                    value: tsb,
+                  });
+                } else {
+                  return throwStandardResultError([
+                    `No valid parameters found for ${lastValue.type}.${name}`,
+                    ...loopValidateParams.reduce((acc, curr) => {
+                      if (!curr.success) {
+                        return [...acc, ...curr.errors];
+                      } else return acc;
+                    }, [] as string[]),
+                  ]);
+                }
+
+                console.log(loopValidateParams);
+              } else {
+                return throwStandardResultError(
+                  `${member.property.name} method does not exist on ${lastValue.type}`
+                );
+              }
+            } else {
+              return throwStandardResultError(
+                `${lastValue.type} does not contain any methods`
+              );
+            }
+          } else {
+            return throwStandardResultError(
+              "Expected member to be an Identifier"
+            );
+          }
         } else {
-          return throwError(
+          return throwStandardResultError(
             `Cannot call a function on type ${lastValue.type} of value ${lastValue.value}`
           );
         }
       } else {
-        return throwError(
+        return throwStandardResultError(
           "Call expression called without member expression preceding it"
         );
       }
     }
   } else {
-    return throwError(
+    return throwStandardResultError(
       "Expression did not match pattern: MemberExpression,CallExpression"
     );
   }
@@ -627,4 +742,20 @@ function getCallExpressionValue(
     warnings: [],
     payload: { type: "number", value: 1 },
   };
+}
+
+function throwStandardResultError(
+  err: string | string[]
+): ReturnType<typeof StandardResultError> {
+  if (typeof err === "string") {
+    return {
+      success: false as const,
+      errors: [err],
+    };
+  } else {
+    return {
+      success: false as const,
+      errors: err,
+    };
+  }
 }
