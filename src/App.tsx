@@ -1,12 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 
 import { Menu, Transition } from "@headlessui/react";
-import { ChevronDownIcon, DotsVerticalIcon } from "@heroicons/react/solid";
-
-import { DraggableCore } from "react-draggable";
+import { ChevronDownIcon } from "@heroicons/react/solid";
 
 import Editor from "./components/Editor/Editor";
 import { Token } from "./parser/tokenizer";
+import {
+  DraggableDividerHorizontal,
+  DraggableDividerVertical,
+} from "./components/DraggableDivider";
 
 const MIN_WIDTH_DEV_PANEL = 300;
 
@@ -24,18 +26,15 @@ function App() {
       style={{ gridTemplateColumns: `1fr ${devPanelWidth}px` }}
     >
       <div className="relative border border-gray-100">
-        <DraggableCore
+        <DraggableDividerVertical
+          // Make the vertical divider a higher z-index than the horizontal (default z-index of 10)
+          style={{ zIndex: 20 }}
           onDrag={(_, { deltaX }) =>
             setDevPanelWidth((prev) =>
               Math.max(prev - deltaX, MIN_WIDTH_DEV_PANEL)
             )
           }
-        >
-          <div className="group absolute top-0 right-0 flex justify-center items-center w-3 h-full transform translate-x-1.5 cursor-col-resize">
-            <div className="h-full w-0.5 group-hover:w-2 bg-gray-100 group-hover:border-gray-300 border-transparent border-l-[1px] border-r-[1px] transition-all delay-75"></div>
-            <DotsVerticalIcon className="absolute w-4 h-4 text-gray-400 transition delay-75 transform scale-75 opacity-0 group-hover:opacity-100 group-hover:scale-100" />
-          </div>
-        </DraggableCore>
+        />
       </div>
       <div
         className="grid"
@@ -43,13 +42,23 @@ function App() {
           gridTemplateRows: `1fr ${codePanelHeight}px`,
         }}
       >
-        <div className="flex flex-col px-3 py-2 border border-gray-100 bg-gray-50">
-          <div className="flex items-center justify-between px-4 py-2 bg-blue-100 rounded-lg">
+        <div className="relative flex flex-col border border-gray-100 bg-gray-50">
+          <div className="flex items-center justify-between px-4 py-2 mx-2 my-3 bg-blue-100 rounded-lg">
             <h1 className="font-bold text-blue-900">Your Code</h1>
             <Menu as="div" className="relative">
               {({ open }) => (
                 <>
-                  <Menu.Button className="flex flex-row items-center justify-between px-3 py-1 pr-1 transition bg-blue-600 border border-transparent rounded-md opacity-50 group hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:border-blue-600">
+                  <Menu.Button
+                    className={`group flex flex-row items-center justify-between
+                                          px-3 py-1 pr-1 transition 
+                                          bg-blue-600
+                                          border border-transparent 
+                                          rounded-md opacity-50
+                                          hover:opacity-100
+                                          focus:opacity-100 focus:outline-none
+                                          focus-visible:ring-2 focus-visible:ring-blue-400
+                                          focus-visible:border-blue-600`}
+                  >
                     <span className="mr-1 text-xs text-white">Java</span>
                     <ChevronDownIcon className="w-5 h-5 text-blue-200 group-focus:text-blue-100" />
                   </Menu.Button>
@@ -96,9 +105,14 @@ function App() {
             </Menu>
           </div>
           <Editor onChange={onEditorChange} />
+          <DraggableDividerHorizontal
+            onDrag={(_, { deltaY }) =>
+              setCodePanelHeight((prev) => Math.max(prev - deltaY, 0))
+            }
+          />
         </div>
         <div className="grid border border-gray-100 place-items-center">
-          <h3>TBD Panel</h3>
+          <h3>Trajectory Overview</h3>
         </div>
       </div>
     </main>

@@ -15,6 +15,7 @@ module.exports = {
       },
       cursor: {
         "col-resize": "col-resize",
+        "row-resize": "row-resize",
       },
     },
   },
