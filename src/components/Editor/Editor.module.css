@@ -1,15 +1,42 @@
 .editor,
 .highlighter {
   @apply absolute top-0 left-0;
-  @apply w-full h-full px-2 py-4;
+  @apply w-full h-full;
   @apply overflow-auto;
   @apply font-mono text-xs leading-normal;
+
+  @apply pt-0 pb-12 pl-5 pr-3;
 }
 
 .editor {
   @apply text-transparent bg-transparent border-none resize-none;
   @apply focus:outline-none focus:ring-0;
+  @apply cursor-auto;
+
   caret-color: black;
+}
+
+.highlighter::-webkit-scrollbar {
+  display: none;
+}
+
+.editor::-webkit-scrollbar {
+  @apply w-1.5;
+  @apply h-1.5;
+}
+
+.editor::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.editor::-webkit-scrollbar-thumb {
+  background-color: theme("colors.gray.300");
+}
+
+.editor::-webkit-scrollbar-thumb:hover {
+  background-color: theme("colors.gray.400");
+
+  @apply cursor-pointer;
 }
 
 .highlighter code {

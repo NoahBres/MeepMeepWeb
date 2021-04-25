@@ -7,9 +7,10 @@ import styles from "./Editor.module.css";
 
 type Props = {
   onChange?: (text: Token[]) => void;
+  className?: string;
 };
 
-const Editor = ({ onChange }: Props) => {
+const Editor = ({ onChange, className }: Props) => {
   const highlightingRef = useRef<HTMLPreElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -78,7 +79,7 @@ const Editor = ({ onChange }: Props) => {
   });
 
   return (
-    <div className="relative w-full h-full">
+    <div className={`relative w-full h-full ${className}`}>
       <pre
         className={styles.highlighter}
         aria-hidden="true"
