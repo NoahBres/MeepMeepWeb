@@ -11,14 +11,16 @@ const sharedStylesIcon = tw`absolute w-4 h-4 text-gray-400 transition delay-75 t
 
 const DraggableDividerVertical = ({
   onDrag,
+  onMouseUp,
   anchor = "right",
   style,
 }: {
   onDrag: (e: AbsoluteDragEvent) => void;
+  onMouseUp: (e: MouseEvent) => void;
   anchor?: "left" | "right";
   style?: CSSProperties;
 }) => {
-  const { ref } = useAbsoluteDraggable<HTMLDivElement>({ onDrag });
+  const { ref } = useAbsoluteDraggable<HTMLDivElement>({ onDrag, onMouseUp });
 
   return (
     <div
@@ -40,14 +42,16 @@ const DraggableDividerVertical = ({
 
 const DraggableDividerHorizontal = ({
   onDrag,
+  onMouseUp,
   anchor = "bottom",
   style,
 }: {
   onDrag: (e: AbsoluteDragEvent) => void;
+  onMouseUp: (e: MouseEvent) => void;
   anchor?: "bottom" | "top";
   style?: CSSProperties;
 }) => {
-  const { ref } = useAbsoluteDraggable<HTMLDivElement>({ onDrag });
+  const { ref } = useAbsoluteDraggable<HTMLDivElement>({ onDrag, onMouseUp });
 
   return (
     <div

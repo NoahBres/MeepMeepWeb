@@ -20,6 +20,7 @@ export type AbsoluteDragEvent = {
 type DraggableItemState = {
   id: string;
   onDrag?: (event: AbsoluteDragEvent) => void;
+  onMouseUp?: (event: MouseEvent) => void;
 };
 
 type DraggableState = {
@@ -62,8 +63,10 @@ const AbsoluteDraggableProvider = ({ children }: { children: ReactNode }) => {
   const lastPosDown = useRef({ x: 0, y: 0 });
 
   const masterMouseUp = (evt: MouseEvent) => {
-    if (draggableStateRef.current.currentDown.length !== 0)
+    if (draggableStateRef.current.currentDown.length !== 0) {
+      draggableStateRef.current.currentDown.forEach((e) => e.onMouseUp?.(evt));
       draggableDispatch({ type: "clearCurrentDown" });
+    }
   };
 
   const masterMouseDown = (evt: MouseEvent) => {
@@ -97,11 +100,13 @@ const AbsoluteDraggableProvider = ({ children }: { children: ReactNode }) => {
     document.body.addEventListener("mouseup", masterMouseUp);
     document.body.addEventListener("mousedown", masterMouseDown);
     document.body.addEventListener("mousemove", masterMouseMove);
+    document.body.addEventListener("mouseleave", masterMouseUp);
 
     return () => {
       document.body.removeEventListener("mouseup", masterMouseUp);
       document.body.removeEventListener("mousedown", masterMouseDown);
       document.body.removeEventListener("mousemove", masterMouseMove);
+      document.body.removeEventListener("mouseleave", masterMouseUp);
     };
   }, []);
 
@@ -135,9 +140,11 @@ const useDraggableDispatch = () => {
 const useAbsoluteDraggable = <T extends HTMLElement>({
   onDrag,
   onMouseDown,
+  onMouseUp,
 }: {
   onDrag?: (event: AbsoluteDragEvent) => void;
   onMouseDown?: (event: MouseEvent) => void;
+  onMouseUp?: (event: MouseEvent) => void;
 }) => {
   const addMouseDown = useDraggableDispatch();
 
@@ -145,6 +152,7 @@ const useAbsoluteDraggable = <T extends HTMLElement>({
     addMouseDown({
       id: uuid(),
       onDrag,
+      onMouseUp,
     });
     evt.preventDefault();
 
