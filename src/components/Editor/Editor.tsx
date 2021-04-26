@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 
 import parse from "../../parser/parser";
-import tokenize, { Token } from "../../parser/tokenizer";
+import tokenize, { TokenPlus } from "../../parser/tokenizer";
 
 import styles from "./Editor.module.css";
 
 type Props = {
-  onChange?: (text: Token[]) => void;
+  onChange?: (text: TokenPlus[]) => void;
   className?: string;
 };
 
@@ -16,7 +16,7 @@ const Editor = ({ onChange, className }: Props) => {
 
   const [sourceText, setSourceText] = useState("");
 
-  const [tokenizedText, setTokenizedText] = useState<Token[]>([]);
+  const [tokenizedText, setTokenizedText] = useState<TokenPlus[]>([]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -63,15 +63,16 @@ const Editor = ({ onChange, className }: Props) => {
 
   useEffect(() => {
     console.log("--------Parsing--------");
-    console.log(parse(sourceText, tokenizedText));
+    const parseResult = parse(sourceText);
+    console.log(parseResult);
   }, [tokenizedText]);
 
   const renderedText = tokenizedText.map((e, i) => {
-    if (e.token === "whitespace" && e.text === "\n") return <br key={i} />;
+    if (e.type === "Whitespace" && e.value === "\n") return <br key={i} />;
 
     return (
-      <span className={styles[`token-${e.token}`]} key={i}>
-        {e.text
+      <span className={styles[`token-${e.type.toLowerCase()}`]} key={i}>
+        {e.value
           .replace(new RegExp("&", "g"), "&amp;")
           .replace(new RegExp("<", "g"), "&lt;")}
       </span>

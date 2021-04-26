@@ -59,7 +59,8 @@
   --code-text-highlight: theme("colors.green.600");
 }
 
-.token-number {
+.token-numeric,
+.token-boolean {
   --code-text-highlight: theme("colors.blue.600");
 }
 
@@ -68,6 +69,11 @@
   --code-text-highlight: theme("colors.gray.900");
 }
 
-.token-unknown {
+.token-identifier {
   --code-text-highlight: theme("colors.orange.600");
+}
+
+.token-blockcomment,
+.token-linecomment {
+  --code-text-highlight: theme("colors.gray.500");
 }

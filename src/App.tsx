@@ -6,7 +6,7 @@ import { ChevronDownIcon } from "@heroicons/react/solid";
 import Editor from "./components/Editor/Editor";
 import EditorConsole from "./components/EditorConsole";
 
-import { Token } from "./parser/tokenizer";
+import { TokenPlus } from "./parser/tokenizer";
 import {
   DraggableDividerHorizontal,
   DraggableDividerVertical,
@@ -19,7 +19,7 @@ function App() {
   const [devPanelWidth, setDevPanelWidth] = useState(400);
   const [codePanelHeight, setCodePanelHeight] = useState(200);
 
-  const onEditorChange = (text: Token[]) => {
+  const onEditorChange = (text: TokenPlus[]) => {
     console.log(text);
   };
 

@@ -1,4 +1,4 @@
-import { parseScript, Program } from "esprima";
+import { parseScript, tokenize, Program, Token } from "esprima";
 import {
   ExpressionStatement,
   VariableDeclaration,
@@ -6,19 +6,25 @@ import {
   MemberExpression,
   Literal,
   BaseNode,
-  Identifier,
   NewExpression,
 } from "estree";
 
-import { Token } from "./tokenizer";
 import { isNumber } from "./util";
+
+type Error = {
+  description: string;
+  index: number;
+  lineNumber: number;
+  column: number;
+};
 
 type StandardResult =
   | {
       success: true;
       warnings: string[];
     }
-  | { success: false; errors: string[] };
+  // Todo fix errors
+  | { success: false; errors: string[] | Error[] };
 
 const StandardResultError = (error: string | string[]) => {
   if (typeof error === "string") {
@@ -119,10 +125,7 @@ type Vector2d = {
   y: number;
 };
 
-export default function parse(
-  sourceText: string,
-  tokens: Token[]
-): StandardResult {
+export default function parse(sourceText: string): StandardResult {
   if (sourceText.trim() === "") {
     return {
       success: false,
@@ -135,9 +138,10 @@ export default function parse(
   try {
     ast = parseScript(sourceText, {
       // TODO: set to true later
-      range: false,
-      comment: false,
-      tokens: false,
+      range: true,
+      loc: true,
+      comment: true,
+      tokens: true,
     });
   } catch (err) {
     return {
