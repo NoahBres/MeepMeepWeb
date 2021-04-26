@@ -14,6 +14,17 @@ export type RoadRunnerTypes =
 
 export type KnownTypes = JavaNativeTypes | RoadRunnerTypes | "unknown" | "void";
 
+export type Pose2d = {
+  x: number;
+  y: number;
+  heading: number;
+};
+
+export type Vector2d = {
+  x: number;
+  y: number;
+};
+
 export type BuilderCallTypes = {
   name: "splineTo";
   data: {

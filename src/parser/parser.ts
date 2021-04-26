@@ -11,9 +11,11 @@ import {
 import {
   JavaNativeTypes,
   KnownTypes,
+  Pose2d,
   RoadRunnerTypes,
   TrajectorySequenceBuilder,
   TranslationMeta,
+  Vector2d,
 } from "./TranslationMeta";
 
 import { isNumber } from "./util";
@@ -65,17 +67,6 @@ const NativeTypesCheck = (input: string): KnownTypes => {
     default:
       return "unknown";
   }
-};
-
-type Pose2d = {
-  x: number;
-  y: number;
-  heading: number;
-};
-
-type Vector2d = {
-  x: number;
-  y: number;
 };
 
 export default function parse(sourceText: string): StandardResult {
