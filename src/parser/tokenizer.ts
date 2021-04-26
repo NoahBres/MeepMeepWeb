@@ -98,6 +98,7 @@ const tokenizeJava = (source: string): TokenPlus[] => {
         (source[cursor + 1] ?? "") === "*" &&
         currToken.type === "BlockComment"
       ) {
+        // TODO calculate col/row and combine these comment open/close tokens with main
         newTokenized.push({
           type: "BlockComment",
           value: "/*",

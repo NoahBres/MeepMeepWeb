@@ -8,6 +8,13 @@ import {
   BaseNode,
   NewExpression,
 } from "estree";
+import {
+  JavaNativeTypes,
+  KnownTypes,
+  RoadRunnerTypes,
+  TrajectorySequenceBuilder,
+  TranslationMeta,
+} from "./TranslationMeta";
 
 import { isNumber } from "./util";
 
@@ -45,73 +52,19 @@ const StandardResultSuccess = (warnings: string[] = []) => ({
   warnings,
 });
 
-type BuilderCallTypes = {
-  name: "splineTo";
-  data: {
-    endPosisition: Vector2d;
-    endTangent: number;
-  };
-};
-type TrajectorySequenceBuilder = {
-  startPose: {
-    x: number;
-    y: number;
-    heading: number;
-  };
-  builderCalls: unknown[];
-};
+const NativeTypesCheck = (input: string): KnownTypes => {
+  if (input === null) return "unknown";
 
-type TranslationMethod = {
-  parameterTypes: KnownTypes[];
-  returnType: KnownTypes;
-};
-type TranslationMetaType = {
-  [key in RoadRunnerTypes]: {
-    methods?: {
-      [key: string]: TranslationMethod[];
-    };
-  };
-};
-const TranslationMeta: TranslationMetaType = {
-  TrajectorySequenceBuilder: {
-    methods: {
-      splineTo: [
-        {
-          parameterTypes: ["Vector2d", "number"],
-          returnType: "TrajectorySequenceBuilder",
-        },
-      ],
-      lineTo: [
-        {
-          parameterTypes: ["Vector2d"],
-          returnType: "TrajectorySequenceBuilder",
-        },
-      ],
-      forward: [
-        {
-          parameterTypes: ["number"],
-          returnType: "TrajectorySequenceBuilder",
-        },
-      ],
-      resetConstraints: [
-        {
-          parameterTypes: [],
-          returnType: "TrajectorySequenceBuilder",
-        },
-      ],
-      build: [
-        {
-          parameterTypes: [],
-          returnType: "TrajectorySequence",
-        },
-      ],
-    },
-  },
-  TrajectorySequence: {},
-  Vector2d: {
-    // TODO Move the constructor parameter verification here
-  },
-  Pose2d: {},
+  switch (true) {
+    case isNumber(input):
+      return "number";
+    case input === "false" || input === "true":
+      return "boolean";
+    case input.startsWith('"') && input.endsWith('"'):
+      return "string";
+    default:
+      return "unknown";
+  }
 };
 
 type Pose2d = {
@@ -228,31 +181,6 @@ function extractFromExpressionStatement({
   };
 }
 
-// We just pretend all number types (int, double, float, etc.) are numbers since JS numbers are all the same
-type JavaNativeTypes = "boolean" | "number" | "string" | "null";
-type RoadRunnerTypes =
-  | "TrajectorySequence"
-  | "TrajectorySequenceBuilder"
-  | "Pose2d"
-  | "Vector2d";
-
-type KnownTypes = JavaNativeTypes | RoadRunnerTypes | "unknown" | "void";
-
-const TypeCheck = (input: string): KnownTypes => {
-  if (input === null) return "unknown";
-
-  switch (true) {
-    case isNumber(input):
-      return "number";
-    case input === "false" || input === "true":
-      return "boolean";
-    case input.startsWith('"') && input.endsWith('"'):
-      return "string";
-    default:
-      return "unknown";
-  }
-};
-
 type VerifyParametersReturnType =
   | (ReturnType<typeof StandardResultSuccess> & { paramValues: any[] })
   | ReturnType<typeof StandardResultError>;
@@ -293,7 +221,7 @@ const verifyParameters = ({
       const literal = param as Literal;
 
       paramVal = literal.value ?? "";
-      paramType = TypeCheck(paramVal);
+      paramType = NativeTypesCheck(paramVal);
     } else if (param.type === "CallExpression") {
       const evalCall = getCallExpressionValue(
         callExpressionTreeToList(param as CallExpression, []),
@@ -392,7 +320,7 @@ function getNewExpressionValue(
       }
       default:
         return throwStandardResultError(
-          `Uknown New expression: ${expression.callee.name}`
+          `Unkown new expression: ${expression.callee.name}`
         );
     }
   } else {
@@ -587,7 +515,7 @@ function getCallExpressionValue(
       "Expected a minimum call stack length of 2"
     );
 
-  // The stack is backwards
+  // The stack is backwards. First call is deepest in the tree
   const first = currentStack[currentStack.length - 1];
   const second = currentStack[currentStack.length - 2];
   if (first.type === "MemberExpression" && second.type === "CallExpression") {
@@ -707,8 +635,6 @@ function getCallExpressionValue(
                     }, [] as string[]),
                   ]);
                 }
-
-                console.log(loopValidateParams);
               } else {
                 return throwStandardResultError(
                   `${member.property.name} method does not exist on ${lastValue.type}`
@@ -740,12 +666,6 @@ function getCallExpressionValue(
       "Expression did not match pattern: MemberExpression,CallExpression"
     );
   }
-
-  return {
-    success: true,
-    warnings: [],
-    payload: { type: "number", value: 1 },
-  };
 }
 
 function throwStandardResultError(
