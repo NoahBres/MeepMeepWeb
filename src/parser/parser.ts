@@ -5,6 +5,7 @@ import {
   CallExpression,
   MemberExpression,
   Literal,
+  Identifier,
   BaseNode,
   NewExpression,
 } from "estree";
@@ -12,8 +13,10 @@ import {
   JavaNativeTypes,
   KnownTypes,
   Pose2d,
-  RoadRunnerTypes,
+  RoadRunnerType,
+  TrajectoryAccelerationConstraint,
   TrajectorySequenceBuilder,
+  TrajectoryVelocityConstraint,
   TranslationMeta,
   Vector2d,
 } from "./TranslationMeta";
@@ -569,6 +572,77 @@ function getCallExpressionValue(
           } else {
             return throwStandardResultError(validateParams.errors);
           }
+        } else if (Object.keys(TranslationMeta).includes(member.object.name)) {
+          const methods =
+            TranslationMeta[member.object.name as RoadRunnerType].methods;
+
+          if (methods) {
+            if (Object.keys(methods).includes(member.property.name)) {
+              const method = methods[member.property.name];
+              const name = member.property.name;
+
+              const loopValidateParams = method.map((e) => {
+                return {
+                  verifyParameters: verifyParameters({
+                    identifier: `${(member.object as Identifier).name}.${name}`,
+                    expectedLength: e.parameterTypes.length,
+                    parameters: call.arguments,
+                    parameterTypes: e.parameterTypes,
+                  }),
+                  returnType: e.returnType,
+                };
+              });
+
+              const validParam = loopValidateParams.find(
+                (e) => e.verifyParameters.success
+              );
+              console.log(validParam);
+              if (
+                validParam !== undefined &&
+                validParam.verifyParameters.success
+              ) {
+                let payloadVal = null;
+                if (member.object.name === "SampleMecanumDrive") {
+                  switch (member.property.name) {
+                    case "getVelocityConstraint":
+                      payloadVal = {
+                        maxVel: validParam.verifyParameters.paramValues[0],
+                        maxAngVel: validParam.verifyParameters.paramValues[1],
+                        trackWidth: validParam.verifyParameters.paramValues[2],
+                      } as TrajectoryVelocityConstraint;
+                      break;
+                    case "getAccelerationConstraint":
+                      payloadVal = {
+                        maxAccel: validParam.verifyParameters.paramValues[0],
+                      } as TrajectoryAccelerationConstraint;
+                      break;
+                  }
+                }
+
+                return getCallExpressionValue(currentStack.slice(0, -2), {
+                  type: validParam.returnType,
+                  value: payloadVal,
+                });
+              } else {
+                return throwStandardResultError([
+                  `No valid parameters found for ${member.object.name}.${name}`,
+                  ...loopValidateParams.reduce((acc, curr) => {
+                    if (!curr.verifyParameters.success) {
+                      return [...acc, ...curr.verifyParameters.errors];
+                    } else return acc;
+                  }, [] as string[]),
+                ]);
+              }
+            } else {
+              return throwStandardResultError(
+                `${member.property.name} method does not exist on ${member.object.name}`
+              );
+            }
+          } else {
+            return throwStandardResultError(
+              `${member.object.name} does not contain any methods`
+            );
+          }
         } else {
           return throwStandardResultError(
             `Unknown identifier: ${member.object.name}.${member.property.name}`
@@ -579,12 +653,12 @@ function getCallExpressionValue(
       if (lastValue !== null) {
         if (
           Object.keys(TranslationMeta)
-            .filter((e) => "methods" in TranslationMeta[e as RoadRunnerTypes])
+            .filter((e) => "methods" in TranslationMeta[e as RoadRunnerType])
             .includes(lastValue.type)
         ) {
           if (member.property.type === "Identifier") {
             const methods =
-              TranslationMeta[lastValue.type as RoadRunnerTypes].methods;
+              TranslationMeta[lastValue.type as RoadRunnerType].methods;
             if (methods) {
               if (Object.keys(methods).includes(member.property.name)) {
                 const method = methods[member.property.name];

@@ -1,6 +1,6 @@
 // We just pretend all number types (int, double, float, etc.) are numbers since JS numbers are all the same
 export type JavaNativeTypes = "boolean" | "number" | "string" | "null";
-export type RoadRunnerTypes =
+export type RoadRunnerType =
   | "Trajectory"
   | "TrajectorySequence"
   | "TrajectorySequenceBuilder"
@@ -10,9 +10,10 @@ export type RoadRunnerTypes =
   | "TrajectoryAccelerationConstraint"
   | "MarkerCallback"
   | "TimeProducer"
-  | "DisplacementProducer";
+  | "DisplacementProducer"
+  | "SampleMecanumDrive";
 
-export type KnownTypes = JavaNativeTypes | RoadRunnerTypes | "unknown" | "void";
+export type KnownTypes = JavaNativeTypes | RoadRunnerType | "unknown" | "void";
 
 export type Pose2d = {
   x: number;
@@ -41,12 +42,22 @@ export type TrajectorySequenceBuilder = {
   builderCalls: unknown[];
 };
 
+export type TrajectoryVelocityConstraint = {
+  maxVel: number;
+  maxAngVel: number;
+  trackWidth: number;
+};
+
+export type TrajectoryAccelerationConstraint = {
+  maxAccel: number;
+};
+
 export type TranslationMethod = {
   parameterTypes: KnownTypes[];
   returnType: KnownTypes;
 };
 export type TranslationMetaType = {
-  [key in RoadRunnerTypes]: {
+  [key in RoadRunnerType]: {
     methods?: {
       [key: string]: TranslationMethod[];
     };
@@ -399,4 +410,20 @@ export const TranslationMeta: TranslationMetaType = {
   TimeProducer: {},
   DisplacementProducer: {},
   Trajectory: {},
+  SampleMecanumDrive: {
+    methods: {
+      getVelocityConstraint: [
+        {
+          parameterTypes: ["number", "number", "number"],
+          returnType: "TrajectoryVelocityConstraint",
+        },
+      ],
+      getAccelerationConstraint: [
+        {
+          parameterTypes: ["number"],
+          returnType: "TrajectoryAccelerationConstraint",
+        },
+      ],
+    },
+  },
 };
