@@ -1,10 +1,11 @@
-import { trajectory, geometry, util, profile } from "roadrunnerjs";
+import { trajectory, geometry, util, profile, path } from "roadrunnerjs";
 import {
   SequenceSegment,
   TrajectorySegment,
   TurnSegment,
   WaitSegment,
 } from "./SequenceSegment";
+import { TrajectorySequence } from "./TrajectorySequence";
 import { toRadians } from "../../util";
 
 export class TrajectorySequenceBuilder {
@@ -441,7 +442,12 @@ export class TrajectorySequenceBuilder {
       this.spatialMarkers
     );
 
-    // return new TrajectorySequence(projectGlobalMarkersToLocalSegments(globalMarkers, sequenceSegments));
+    return new TrajectorySequence(
+      this.projectGlobalMarkersToLocalSegments(
+        globalMarkers,
+        this.sequenceSegments
+      )
+    );
   }
 
   convertMarkersToGlobal(
@@ -458,195 +464,206 @@ export class TrajectorySequenceBuilder {
             e.callback
           )
       ),
-      // ...displacementMarkers.map(
-      //   (e) =>
-      //     new trajectory.TrajectoryMarker(
-      //       displacementToTime(this.sequenceSegments),
-      //       e.producer.produce(this.currentDisplacement)
-      //     )
-      // ),
+      ...displacementMarkers.map(
+        (e) =>
+          new trajectory.TrajectoryMarker(
+            this.displacementToTime(
+              this.sequenceSegments,
+              e.producer.produce(this.currentDisplacement)
+            ),
+            e.callback
+          )
+      ),
+      ...spatialMarkers.map(
+        (e) =>
+          new trajectory.TrajectoryMarker(
+            this.pointToTime(this.sequenceSegments, e.point),
+            e.callback
+          )
+      ),
     ];
-
-    // // Convert displacement markers
-    // for (DisplacementMarker marker : displacementMarkers) {
-    //   double time = displacementToTime(
-    //           sequenceSegments,
-    //           marker.getProducer().produce(currentDisplacement)
-    //   );
-
-    //   trajectoryMarkers.add(
-    //           new TrajectoryMarker(
-    //                   time,
-    //                   marker.getCallback()
-    //           )
-    //   );
-    // }
-
-    // // Convert spatial markers
-    // for (SpatialMarker marker : spatialMarkers) {
-    //   trajectoryMarkers.add(
-    //           new TrajectoryMarker(
-    //                   pointToTime(sequenceSegments, marker.getPoint()),
-    //                   marker.getCallback()
-    //           )
-    //   );
-    // }
 
     return trajectoryMarkers;
   }
 
-  // private List<SequenceSegment> projectGlobalMarkersToLocalSegments(List<TrajectoryMarker> markers, List<SequenceSegment> sequenceSegments) {
-  // if (sequenceSegments.isEmpty()) return Collections.emptyList();
+  private projectGlobalMarkersToLocalSegments(
+    markers: trajectory.TrajectoryMarker[],
+    sequenceSegments: SequenceSegment[]
+  ): SequenceSegment[] {
+    if (sequenceSegments.length === 0) return [];
 
-  // double totalSequenceDuration = 0;
-  // for (SequenceSegment segment : sequenceSegments) {
-  //   totalSequenceDuration += segment.getDuration();
-  // }
+    const totalSequenceDuration = sequenceSegments.reduce(
+      (acc, curr) => acc + curr.duration,
+      0
+    );
 
-  // for (TrajectoryMarker marker : markers) {
-  //   SequenceSegment segment = null;
-  //   int segmentIndex = 0;
-  //   double segmentOffsetTime = 0;
+    markers.forEach((marker) => {
+      let segment: SequenceSegment | null = null;
+      let segmentIndex = 0;
+      let segmentOffsetTime = 0;
 
-  //   double currentTime = 0;
-  //   for (int i = 0; i < sequenceSegments.size(); i++) {
-  //       SequenceSegment seg = sequenceSegments.get(i);
+      let currentTime = 0;
+      for (let i = 0; i < sequenceSegments.length; i++) {
+        const seg = sequenceSegments[i];
 
-  //       double markerTime = Math.min(marker.getTime(), totalSequenceDuration);
+        const markerTime = Math.min(marker.time, totalSequenceDuration);
 
-  //       if (currentTime + seg.getDuration() >= markerTime) {
-  //           segment = seg;
-  //           segmentIndex = i;
-  //           segmentOffsetTime = markerTime - currentTime;
+        if (currentTime + seg.duration >= markerTime) {
+          segment = seg;
+          segmentIndex = i;
+          segmentOffsetTime = markerTime - currentTime;
 
-  //           break;
-  //       } else {
-  //           currentTime += seg.getDuration();
-  //       }
-  //   }
+          break;
+        } else {
+          currentTime += seg.duration;
+        }
+      }
 
-  //   SequenceSegment newSegment = null;
+      let newSegment: SequenceSegment | null = null;
 
-  //   if (segment instanceof WaitSegment) {
-  //       List<TrajectoryMarker> newMarkers = segment.getMarkers();
-  //       newMarkers.add(new TrajectoryMarker(segmentOffsetTime, marker.getCallback()));
+      if (segment instanceof WaitSegment) {
+        const newMarkers: trajectory.TrajectoryMarker[] = segment.markers;
+        newMarkers.push(
+          new trajectory.TrajectoryMarker(segmentOffsetTime, marker.callback)
+        );
 
-  //       WaitSegment thisSegment = (WaitSegment) segment;
-  //       newSegment = new WaitSegment(thisSegment.getStartPose(), thisSegment.getDuration(), thisSegment.getMarkers());
-  //   } else if (segment instanceof TurnSegment) {
-  //       List<TrajectoryMarker> newMarkers = segment.getMarkers();
-  //       newMarkers.add(new TrajectoryMarker(segmentOffsetTime, marker.getCallback()));
+        newSegment = new WaitSegment(
+          segment.startPose,
+          segment.duration,
+          segment.markers
+        );
+      } else if (segment instanceof TurnSegment) {
+        const newMarkers: trajectory.TrajectoryMarker[] = segment.markers;
+        newMarkers.push(
+          new trajectory.TrajectoryMarker(segmentOffsetTime, marker.callback)
+        );
 
-  //       TurnSegment thisSegment = (TurnSegment) segment;
-  //       newSegment = new TurnSegment(thisSegment.getStartPose(), thisSegment.getTotalRotation(), thisSegment.getMotionProfile(), thisSegment.getMarkers());
-  //   } else if (segment instanceof TrajectorySegment) {
-  //       TrajectorySegment thisSegment = (TrajectorySegment) segment;
+        newSegment = new TurnSegment(
+          segment.startPose,
+          segment.totalRotation,
+          segment.motionProfile,
+          segment.markers
+        );
+      } else if (segment instanceof TrajectorySegment) {
+        const newMarkers: trajectory.TrajectoryMarker[] =
+          segment.trajectory.markers;
+        newMarkers.push(
+          new trajectory.TrajectoryMarker(segmentOffsetTime, marker.callback)
+        );
 
-  //       List<TrajectoryMarker> newMarkers = thisSegment.getTrajectory().getMarkers();
-  //       newMarkers.add(new TrajectoryMarker(segmentOffsetTime, marker.getCallback()));
+        newSegment = new TrajectorySegment(
+          new trajectory.Trajectory(
+            segment.trajectory.path,
+            segment.trajectory.profile,
+            newMarkers
+          )
+        );
+      }
 
-  //       newSegment = new TrajectorySegment(new Trajectory(thisSegment.getTrajectory().getPath(), thisSegment.getTrajectory().getProfile(), newMarkers));
-  //   }
+      sequenceSegments[segmentIndex] = newSegment as SequenceSegment;
+    });
 
-  //   sequenceSegments.set(segmentIndex, newSegment);
-  // }
-
-  // return sequenceSegments;
-  // }
+    return sequenceSegments;
+  }
 
   // // Taken from Road Runner's TrajectoryGenerator.displacementToTime() since it's private
   // // note: this assumes that the profile position is monotonic increasing
-  // private Double motionProfileDisplacementToTime(MotionProfile profile, double s) {
-  // double tLo = 0.0;
-  // double tHi = profile.duration();
-  // while (!(Math.abs(tLo - tHi) < 1e-6)) {
-  //   double tMid = 0.5 * (tLo + tHi);
-  //   if (profile.get(tMid).getX() > s) {
-  //       tHi = tMid;
-  //   } else {
-  //       tLo = tMid;
-  //   }
-  // }
-  // return 0.5 * (tLo + tHi);
-  // }
+  private motionProfileDisplacementToTime(
+    profile: profile.MotionProfile,
+    s: number
+  ) {
+    let tLo = 0.0;
+    let tHi = profile.duration();
+    while (!(Math.abs(tLo - tHi) < 1e-6)) {
+      const tMid = 0.5 * (tLo + tHi);
+      if (profile.get(tMid).x > s) {
+        tHi = tMid;
+      } else {
+        tLo = tMid;
+      }
+    }
+    return 0.5 * (tLo + tHi);
+  }
 
-  // private Double displacementToTime(List<SequenceSegment> sequenceSegments, double s) {
-  // double currentTime = 0.0;
-  // double currentDisplacement = 0.0;
+  private displacementToTime(sequenceSegments: SequenceSegment[], s: number) {
+    let currentTime = 0.0;
+    let currentDisplacement = 0.0;
 
-  // for (SequenceSegment segment : sequenceSegments) {
-  //   if (segment instanceof TrajectorySegment) {
-  //       TrajectorySegment thisSegment = (TrajectorySegment) segment;
+    sequenceSegments.forEach((segment) => {
+      if (segment instanceof TrajectorySegment) {
+        const segmentLength = segment.trajectory.path.length();
 
-  //       double segmentLength = thisSegment.getTrajectory().getPath().length();
+        if (currentDisplacement + segmentLength > s) {
+          const target = s - currentDisplacement;
+          const timeInSegment = this.motionProfileDisplacementToTime(
+            segment.trajectory.profile,
+            target
+          );
 
-  //       if (currentDisplacement + segmentLength > s) {
-  //           double target = s - currentDisplacement;
-  //           double timeInSegment = motionProfileDisplacementToTime(
-  //                   thisSegment.getTrajectory().getProfile(),
-  //                   target
-  //           );
+          return currentTime + timeInSegment;
+        } else {
+          currentDisplacement += segmentLength;
+          currentTime += segment.trajectory.duration();
+        }
+      } else {
+        currentTime += segment.duration;
+      }
+    });
 
-  //           return currentTime + timeInSegment;
-  //       } else {
-  //           currentDisplacement += segmentLength;
-  //           currentTime += thisSegment.getTrajectory().duration();
-  //       }
-  //   } else {
-  //       currentTime += segment.getDuration();
-  //   }
-  // }
+    return 0.0;
+  }
 
-  // return 0.0;
-  // }
+  private pointToTime(
+    sequenceSegments: SequenceSegment[],
+    point: geometry.Vector2d
+  ) {
+    type ComparingPoints = {
+      distanceToPoint: number;
+      totalDisplacement: number;
+      thisPathDisplacement: number;
+    };
 
-  // private Double pointToTime(List<SequenceSegment> sequenceSegments, Vector2d point) {
-  // class ComparingPoints {
-  //   private final double distanceToPoint;
-  //   private final double totalDisplacement;
-  //   private final double thisPathDisplacement;
+    const projectedPoints: ComparingPoints[] = [];
 
-  //   public ComparingPoints(double distanceToPoint, double totalDisplacement, double thisPathDisplacement) {
-  //       this.distanceToPoint = distanceToPoint;
-  //       this.totalDisplacement = totalDisplacement;
-  //       this.thisPathDisplacement = thisPathDisplacement;
-  //   }
-  // }
+    sequenceSegments.forEach((segment) => {
+      if (segment instanceof TrajectorySegment) {
+        const displacement = segment.trajectory.path.project(point, 0.25);
+        const projectedPoint = segment.trajectory.path
+          .getSingleParam(displacement)
+          .vec();
+        const distanceToPoint = point.minus(projectedPoint).norm();
 
-  // List<ComparingPoints> projectedPoints = new ArrayList<>();
+        let totalDisplacement = 0.0;
 
-  // for (SequenceSegment segment : sequenceSegments) {
-  //   if (segment instanceof TrajectorySegment) {
-  //       TrajectorySegment thisSegment = (TrajectorySegment) segment;
+        projectedPoints.forEach(
+          (e) => (totalDisplacement += e.totalDisplacement)
+        );
 
-  //       double displacement = thisSegment.getTrajectory().getPath().project(point, 0.25);
-  //       Vector2d projectedPoint = thisSegment.getTrajectory().getPath().get(displacement).vec();
-  //       double distanceToPoint = point.minus(projectedPoint).norm();
+        totalDisplacement += displacement;
 
-  //       double totalDisplacement = 0.0;
+        projectedPoints.push({
+          distanceToPoint,
+          totalDisplacement: displacement,
+          thisPathDisplacement: totalDisplacement,
+        });
+      }
+    });
 
-  //       for (ComparingPoints comparingPoint : projectedPoints) {
-  //           totalDisplacement += comparingPoint.totalDisplacement;
-  //       }
+    let closestPoint: ComparingPoints | null = null;
 
-  //       totalDisplacement += displacement;
+    for (const comparingPoint of projectedPoints) {
+      if (closestPoint === null) {
+        closestPoint = comparingPoint;
+        continue;
+      }
 
-  //       projectedPoints.add(new ComparingPoints(distanceToPoint, displacement, totalDisplacement));
-  //   }
-  // }
+      if (comparingPoint.distanceToPoint < closestPoint.distanceToPoint)
+        closestPoint = comparingPoint;
+    }
 
-  // ComparingPoints closestPoint = null;
-
-  // for (ComparingPoints comparingPoint : projectedPoints) {
-  //   if (closestPoint == null) {
-  //       closestPoint = comparingPoint;
-  //       continue;
-  //   }
-
-  //   if (comparingPoint.distanceToPoint < closestPoint.distanceToPoint)
-  //       closestPoint = comparingPoint;
-  // }
-
-  // return displacementToTime(sequenceSegments, closestPoint.thisPathDisplacement);
-  // }
+    return this.displacementToTime(
+      sequenceSegments,
+      closestPoint?.thisPathDisplacement ?? 0
+    );
+  }
 }

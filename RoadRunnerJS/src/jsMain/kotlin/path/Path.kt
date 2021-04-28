@@ -43,6 +43,9 @@ class Path(val segments: Array<PathSegment>) {
         return segment[remainingDisplacement, t]
     }
 
+    // Required as JS compilation doesn't have overloads
+    fun getSingleParam(s: Double) = get(s, reparam(s))
+
     /**
      * Returns the pose derivative [s] units along the path.
      */
