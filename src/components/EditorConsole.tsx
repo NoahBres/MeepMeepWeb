@@ -2,7 +2,6 @@ import React, {
   useState,
   MouseEventHandler,
   useEffect,
-  useRef,
   useReducer,
 } from "react";
 import { ArrowSmUpIcon, CheckCircleIcon } from "@heroicons/react/outline";
@@ -174,10 +173,10 @@ const EditorConsole = ({ closedHeight, content }: Props) => {
           currentState === "disturbed" ? "" : ", height 150ms ease"
         }`,
       }}
-      className={`group box-content absolute bottom-0 w-full h-10 border-0 transition backdrop-filter bg-opacity-10 ${
+      className={`box-content absolute bottom-0 w-full h-10 border-0 transition backdrop-filter bg-gray-100 ${
         isOpen
-          ? "bg-gray-100 border-gray-200 backdrop-blur-sm border-t-[1px]"
-          : "bg-transparent border-gray-100 backdrop-blur-0 border-t-[2px]"
+          ? " bg-opacity-10 border-gray-200 backdrop-blur-sm border-t-[1px]"
+          : "bg-opacity-100  border-gray-200 backdrop-blur-0 border-t-[2px]"
       }`}
     >
       <DraggableDividerHorizontal

@@ -4,7 +4,7 @@ import commons.math4.linear.Array2DRowRealMatrix
 import commons.math4.linear.LUDecomposition
 
 @Suppress("TopLevelPropertyNaming")
-private val COEFF_MATRIX = Array2DRowRealMatrix(
+private val COEFF_MATRIX = commons.math4.linear.Array2DRowRealMatrix(
     arrayOf(
         doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 1.0),
         doubleArrayOf(0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
@@ -42,7 +42,7 @@ class QuinticPolynomial(
 
     init {
         val target =
-            Array2DRowRealMatrix(
+            commons.math4.linear.Array2DRowRealMatrix(
                 arrayOf(
                     doubleArrayOf(
                         start,

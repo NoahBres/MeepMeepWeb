@@ -1,10 +1,12 @@
 package util
 
+import kotlin.js.JsExport
 import kotlin.math.PI
 
 /**
  * Various utilities for working with angles.
  */
+@JsExport
 object Angle {
     private const val TAU = PI * 2
 

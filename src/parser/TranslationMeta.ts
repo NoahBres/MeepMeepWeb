@@ -15,40 +15,22 @@ export type RoadRunnerType =
 
 export type KnownTypes = JavaNativeTypes | RoadRunnerType | "unknown" | "void";
 
-export type Pose2d = {
-  x: number;
-  y: number;
-  heading: number;
-};
-
-export type Vector2d = {
-  x: number;
-  y: number;
-};
-
-export type BuilderCallTypes = {
-  name: "splineTo";
-  data: {
-    endPosisition: Vector2d;
-    endTangent: number;
-  };
-};
-export type TrajectorySequenceBuilder = {
+export type TrajectorySequenceBuilderType = {
   startPose: {
     x: number;
     y: number;
     heading: number;
   };
-  builderCalls: unknown[];
+  builderCalls: { name: string; data: any }[];
 };
 
-export type TrajectoryVelocityConstraint = {
+export type TrajectoryVelocityConstraintType = {
   maxVel: number;
   maxAngVel: number;
   trackWidth: number;
 };
 
-export type TrajectoryAccelerationConstraint = {
+export type TrajectoryAccelerationConstraintType = {
   maxAccel: number;
 };
 
@@ -63,6 +45,7 @@ export type TranslationMetaType = {
     };
   };
 };
+
 export const TranslationMeta: TranslationMetaType = {
   TrajectorySequenceBuilder: {
     methods: {

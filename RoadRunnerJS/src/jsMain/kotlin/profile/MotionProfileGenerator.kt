@@ -3,6 +3,7 @@ package profile
 import util.DoubleProgression
 import util.MathUtil.solveQuadratic
 import util.epsilonEquals
+import kotlin.js.JsExport
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.sqrt
@@ -16,6 +17,7 @@ private data class EvaluatedConstraint(
  * Motion profile generator with arbitrary start and end motion states and either dynamic constraints or jerk limiting.
  */
 @Suppress("LargeClass", "ComplexMethod", "NestedBlockDepth")
+@JsExport
 object MotionProfileGenerator {
 
     /**

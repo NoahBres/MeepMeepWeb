@@ -47,7 +47,7 @@ interface DecompositionSolver {
      * if the matrices dimensions do not match.
      * @throws SingularMatrixException if the decomposed matrix is singular.
      */
-    fun solve(b: Array2DRowRealMatrix): Array2DRowRealMatrix
+    fun solve(b: commons.math4.linear.Array2DRowRealMatrix): commons.math4.linear.Array2DRowRealMatrix
 
     /**
      * Check if the decomposed matrix is non-singular.

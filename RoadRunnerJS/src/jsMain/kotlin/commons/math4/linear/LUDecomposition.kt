@@ -47,7 +47,7 @@ import kotlin.math.abs
  *
  * @since 2.0 (changed to concrete class in 3.0)
  */
-class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThreshold: Double = DEFAULT_TOO_SMALL) {
+class LUDecomposition constructor(matrix: commons.math4.linear.Array2DRowRealMatrix, singularityThreshold: Double = DEFAULT_TOO_SMALL) {
     /** Entries of LU decomposition.  */
     private val lu: Array<DoubleArray>
 
@@ -61,13 +61,13 @@ class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThres
     private var singular: Boolean
 
     /** Cached value of L.  */
-    private var cachedL: Array2DRowRealMatrix?
+    private var cachedL: commons.math4.linear.Array2DRowRealMatrix?
 
     /** Cached value of U.  */
-    private var cachedU: Array2DRowRealMatrix?
+    private var cachedU: commons.math4.linear.Array2DRowRealMatrix?
 
     /** Cached value of P.  */
-    private var cachedP: Array2DRowRealMatrix?
+    private var cachedP: commons.math4.linear.Array2DRowRealMatrix?
 
     /**
      * Returns the matrix L of the decomposition.
@@ -75,15 +75,15 @@ class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThres
      * L is a lower-triangular matrix
      * @return the L matrix (or null if decomposed matrix is singular)
      */
-    val l: Array2DRowRealMatrix?
+    val l: commons.math4.linear.Array2DRowRealMatrix?
         get() {
             if (cachedL == null && !singular) {
                 val m = pivot.size
-                cachedL = Array2DRowRealMatrix(m, m)
+                cachedL = commons.math4.linear.Array2DRowRealMatrix(m, m)
                 for (i in 0 until m) {
-                    val luI = lu!![i]
+                    val luI = lu[i]
                     for (j in 0 until i) {
-                        cachedL!!.setEntry(i, j, luI!![j])
+                        cachedL!!.setEntry(i, j, luI[j])
                     }
                     cachedL!!.setEntry(i, i, 1.0)
                 }
@@ -98,15 +98,15 @@ class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThres
      * U is an upper-triangular matrix
      * @return the U matrix (or null if decomposed matrix is singular)
      */
-    val u: Array2DRowRealMatrix?
+    val u: commons.math4.linear.Array2DRowRealMatrix?
         get() {
             if (cachedU == null && !singular) {
                 val m = pivot.size
-                cachedU = Array2DRowRealMatrix(m, m)
+                cachedU = commons.math4.linear.Array2DRowRealMatrix(m, m)
                 for (i in 0 until m) {
-                    val luI = lu!![i]
+                    val luI = lu[i]
                     for (j in i until m) {
-                        cachedU!!.setEntry(i, j, luI!![j])
+                        cachedU!!.setEntry(i, j, luI[j])
                     }
                 }
             }
@@ -123,11 +123,11 @@ class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThres
      * @return the P rows permutation matrix (or null if decomposed matrix is singular)
      * @see .getPivot
      */
-    val p: Array2DRowRealMatrix?
+    val p: commons.math4.linear.Array2DRowRealMatrix?
         get() {
             if (cachedP == null && !singular) {
                 val m = pivot.size
-                cachedP = Array2DRowRealMatrix(m, m)
+                cachedP = commons.math4.linear.Array2DRowRealMatrix(m, m)
                 for (i in 0 until m) {
                     cachedP!!.setEntry(i, pivot[i], 1.0)
                 }
@@ -155,7 +155,7 @@ class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThres
             val m = pivot.size
             var determinant: Double = if (even) 1.0 else -1.0
             for (i in 0 until m) {
-                determinant *= lu!![i]!![i]
+                determinant *= lu[i][i]
             }
             determinant
         }
@@ -188,7 +188,7 @@ class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThres
             get() = !singular
 
         /** {@inheritDoc}  */
-        override fun solve(b: Array2DRowRealMatrix): Array2DRowRealMatrix {
+        override fun solve(b: commons.math4.linear.Array2DRowRealMatrix): commons.math4.linear.Array2DRowRealMatrix {
             val m = pivot.size
             val nColB = b.columnDimension
 
@@ -207,7 +207,7 @@ class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThres
                 val bpCol = bp[col]
                 for (i in col + 1 until m) {
                     val bpI = bp[i]
-                    val luICol = lu!![i]!![col]
+                    val luICol = lu[i][col]
                     for (j in 0 until nColB) {
                         bpI[j] -= bpCol[j] * luICol
                     }
@@ -217,19 +217,19 @@ class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThres
             // Solve UX = Y
             for (col in m - 1 downTo 0) {
                 val bpCol = bp[col]
-                val luDiag = lu!![col]!![col]
+                val luDiag = lu[col][col]
                 for (j in 0 until nColB) {
                     bpCol[j] /= luDiag
                 }
                 for (i in 0 until col) {
                     val bpI = bp[i]
-                    val luICol = lu[i]!![col]
+                    val luICol = lu[i][col]
                     for (j in 0 until nColB) {
                         bpI[j] -= bpCol[j] * luICol
                     }
                 }
             }
-            return Array2DRowRealMatrix(bp)
+            return commons.math4.linear.Array2DRowRealMatrix(bp)
         }
     }
 
@@ -272,10 +272,10 @@ class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThres
 
             // upper
             for (row in 0 until col) {
-                val luRow = lu!![row]
-                var sum = luRow!![col]
+                val luRow = lu[row]
+                var sum = luRow[col]
                 for (i in 0 until row) {
-                    sum -= luRow[i] * lu[i]!![col]
+                    sum -= luRow[i] * lu[i][col]
                 }
                 luRow[col] = sum
             }
@@ -284,10 +284,10 @@ class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThres
             var max = col // permutation row
             var largest = Double.NEGATIVE_INFINITY
             for (row in col until m) {
-                val luRow = lu!![row]
-                var sum = luRow!![col]
+                val luRow = lu[row]
+                var sum = luRow[col]
                 for (i in 0 until col) {
-                    sum -= luRow[i] * lu[i]!![col]
+                    sum -= luRow[i] * lu[i][col]
                 }
                 luRow[col] = sum
 
@@ -299,17 +299,17 @@ class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThres
             }
 
             // Singularity check
-            if (abs(lu!![max]!![col]) < singularityThreshold) {
+            if (abs(lu[max][col]) < singularityThreshold) {
                 singular = true
             } else {
                 // Pivot if necessary
                 if (max != col) {
-                    var tmp = 0.0
+                    var tmp: Double
                     val luMax = lu[max]
                     val luCol = lu[col]
                     for (i in 0 until m) {
-                        tmp = luMax!![i]
-                        luMax[i] = luCol!![i]
+                        tmp = luMax[i]
+                        luMax[i] = luCol[i]
                         luCol[i] = tmp
                     }
                     val temp = pivot[max]
@@ -319,9 +319,9 @@ class LUDecomposition constructor(matrix: Array2DRowRealMatrix, singularityThres
                 }
 
                 // Divide the lower elements by the "winning" diagonal elt.
-                val luDiag = lu[col]!![col]
+                val luDiag = lu[col][col]
                 for (row in col + 1 until m) {
-                    lu[row]!![col] /= luDiag
+                    lu[row][col] /= luDiag
                 }
             }
         }

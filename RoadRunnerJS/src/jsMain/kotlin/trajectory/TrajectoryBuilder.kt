@@ -7,10 +7,8 @@ import path.PathBuilder
 import profile.MotionState
 import trajectory.constraints.TrajectoryAccelerationConstraint
 import trajectory.constraints.TrajectoryVelocityConstraint
-import util.Angle
 import kotlin.js.JsExport
-import kotlin.js.JsName
-import kotlin.math.PI
+import kotlin.js.console
 
 private fun MotionState.zeroPosition() = MotionState(0.0, v, a, j)
 
@@ -75,6 +73,10 @@ class TrajectoryBuilder constructor(
     } else {
         PathBuilder(startPose, startTangent!!)
     }
+
+    private val temporalMarkers = mutableListOf<TemporalMarker>()
+    private val displacementMarkers = mutableListOf<DisplacementMarker>()
+    private val spatialMarkers = mutableListOf<SpatialMarker>()
 
     /**
      * Create a builder from a start pose and motion state. This is the recommended constructor for creating
@@ -305,7 +307,11 @@ class TrajectoryBuilder constructor(
         velConstraintOverride: TrajectoryVelocityConstraint?,
         accelConstraintOverride: TrajectoryAccelerationConstraint?
     ) =
-        addSegment({ pathBuilder.splineToConstantHeading(endPosition, endTangent) }, velConstraintOverride, accelConstraintOverride)
+        addSegment(
+            { pathBuilder.splineToConstantHeading(endPosition, endTangent) },
+            velConstraintOverride,
+            accelConstraintOverride
+        )
 
     /**
      * Adds a spline segment with linear heading interpolation.
@@ -320,7 +326,11 @@ class TrajectoryBuilder constructor(
         velConstraintOverride: TrajectoryVelocityConstraint?,
         accelConstraintOverride: TrajectoryAccelerationConstraint?
     ) =
-        addSegment({ pathBuilder.splineToLinearHeading(endPose, endTangent) }, velConstraintOverride, accelConstraintOverride)
+        addSegment(
+            { pathBuilder.splineToLinearHeading(endPose, endTangent) },
+            velConstraintOverride,
+            accelConstraintOverride
+        )
 
     /**
      * Adds a spline segment with spline heading interpolation.
@@ -334,13 +344,83 @@ class TrajectoryBuilder constructor(
         velConstraintOverride: TrajectoryVelocityConstraint?,
         accelConstraintOverride: TrajectoryAccelerationConstraint?
     ) =
-        addSegment({ pathBuilder.splineToSplineHeading(endPose, endTangent) }, velConstraintOverride, accelConstraintOverride)
+        addSegment(
+            { pathBuilder.splineToSplineHeading(endPose, endTangent) },
+            velConstraintOverride,
+            accelConstraintOverride
+        )
+
+
+    /**
+     * Adds a marker to the trajectory at [time].
+     */
+    fun addTemporalMarker(time: Double, callback: MarkerCallback) =
+        addTemporalMarker(0.0, time, callback)
+
+    /**
+     * Adds a marker to the trajectory at [scale] * trajectory duration + [offset].
+     */
+    private fun addTemporalMarker(scale: Double, offset: Double, callback: MarkerCallback) =
+        addTemporalMarker({ scale * it + offset }, callback)
+
+    /**
+     * Adds a marker to the trajectory at [time] evaluated with the trajectory duration.
+     */
+    private fun addTemporalMarker(time: (Double) -> Double, callback: MarkerCallback): TrajectoryBuilder {
+        temporalMarkers.add(TemporalMarker(time, callback))
+
+        return this
+    }
+
+    /**
+     * Adds a marker that will be triggered at the closest trajectory point to [point].
+     */
+    fun addSpatialMarker(point: Vector2d, callback: MarkerCallback): TrajectoryBuilder {
+        spatialMarkers.add(SpatialMarker(point, callback))
+
+        return this
+    }
+
+    /**
+     * Adds a marker at the current position of the trajectory.
+     */
+    private fun addDisplacementMarker(callback: MarkerCallback) =
+        addDisplacementMarker(pathBuilder.build().length(), callback)
+
+    /**
+     * Adds a marker to the trajectory at [displacement].
+     */
+    private fun addDisplacementMarker(displacement: Double, callback: MarkerCallback) =
+        addDisplacementMarker(0.0, displacement, callback)
+
+    /**
+     * Adds a marker to the trajectory at [scale] * path length + [offset].
+     */
+    private fun addDisplacementMarker(scale: Double, offset: Double, callback: MarkerCallback) =
+        addDisplacementMarker({ scale * it + offset }, callback)
+
+    /**
+     * Adds a marker to the trajectory at [displacement] evaluated with path length.
+     */
+    private fun addDisplacementMarker(displacement: (Double) -> Double, callback: MarkerCallback): TrajectoryBuilder {
+        displacementMarkers.add(DisplacementMarker(displacement, callback))
+
+        return this
+    }
+
+
+    fun build() = buildTrajectory(
+        pathBuilder.build(),
+        temporalMarkers.toTypedArray(),
+        displacementMarkers.toTypedArray(),
+        spatialMarkers.toTypedArray()
+    )
 
     fun buildTrajectory(
         path: Path,
-        temporalMarkers: List<TemporalMarker>,
-        displacementMarkers: List<DisplacementMarker>,
-        spatialMarkers: List<SpatialMarker>
+        temporalMarkers: Array<TemporalMarker>,
+        displacementMarkers: Array<DisplacementMarker>,
+        spatialMarkers: Array<SpatialMarker>
     ): Trajectory {
         val goal = MotionState(path.length(), 0.0, 0.0)
         return TrajectoryGenerator.generateTrajectory(
@@ -349,9 +429,9 @@ class TrajectoryBuilder constructor(
             PiecewiseAccelerationConstraint(baseAccelConstraint, accelConstraintOverrides),
             start,
             goal,
-            temporalMarkers,
-            displacementMarkers,
-            spatialMarkers,
+            temporalMarkers.toList(),
+            displacementMarkers.toList(),
+            spatialMarkers.toList(),
             resolution
         )
     }

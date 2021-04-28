@@ -1,5 +1,7 @@
 package profile
 
+import kotlin.js.JsExport
+
 /**
  * Motion profile velocity constraint.
  */

@@ -7,6 +7,7 @@ import path.heading.LinearInterpolator
 import path.heading.SplineInterpolator
 import path.heading.TangentInterpolator
 import util.Angle
+import kotlin.js.JsExport
 import kotlin.math.PI
 
 /**

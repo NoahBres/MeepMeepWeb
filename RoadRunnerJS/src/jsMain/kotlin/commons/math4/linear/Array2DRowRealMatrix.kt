@@ -65,7 +65,7 @@ class Array2DRowRealMatrix {
     val columnDimension
         get() = dataRef[0].size
 
-    fun transpose(): Array2DRowRealMatrix {
+    fun transpose(): commons.math4.linear.Array2DRowRealMatrix {
         val m = dataRef.size
         val n = dataRef[0].size
 
@@ -77,6 +77,6 @@ class Array2DRowRealMatrix {
             }
         }
 
-        return Array2DRowRealMatrix(transposedMatrix)
+        return commons.math4.linear.Array2DRowRealMatrix(transposedMatrix)
     }
 }

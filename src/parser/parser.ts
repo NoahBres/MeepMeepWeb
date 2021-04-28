@@ -1,4 +1,4 @@
-import { parseScript, tokenize, Program, Token } from "esprima";
+import { parseScript, Program } from "esprima";
 import {
   ExpressionStatement,
   VariableDeclaration,
@@ -9,19 +9,20 @@ import {
   BaseNode,
   NewExpression,
 } from "estree";
+import { buildTrajectorySequence } from "./TrajectorySequenceUtil";
 import {
   JavaNativeTypes,
   KnownTypes,
-  Pose2d,
   RoadRunnerType,
-  TrajectoryAccelerationConstraint,
-  TrajectorySequenceBuilder,
-  TrajectoryVelocityConstraint,
+  TrajectoryAccelerationConstraintType,
+  TrajectorySequenceBuilderType,
+  TrajectoryVelocityConstraintType,
   TranslationMeta,
-  Vector2d,
 } from "./TranslationMeta";
 
-import { isNumber } from "./util";
+import { geometry, trajectory } from "roadrunnerjs";
+
+import { isNumber } from "../util";
 
 type Error = {
   description: string;
@@ -72,7 +73,13 @@ const NativeTypesCheck = (input: string): KnownTypes => {
   }
 };
 
-export default function parse(sourceText: string): StandardResult {
+export default function parse(
+  sourceText: string,
+  defaultConstraints: {
+    velConstraint: TrajectoryVelocityConstraintType;
+    accelConstraint: TrajectoryAccelerationConstraintType;
+  }
+): StandardResult {
   if (sourceText.trim() === "") {
     return {
       success: false,
@@ -110,7 +117,9 @@ export default function parse(sourceText: string): StandardResult {
       case "ExpressionStatement": {
         const extracted = extractFromExpressionStatement(e);
         if (extracted.success) {
-          trajectorySequenceList.push(extracted);
+          if (extracted.payload.type === "TrajectorySequenceBuilder") {
+            trajectorySequenceList.push(extracted.payload.value);
+          }
         } else {
           return {
             success: false,
@@ -122,6 +131,13 @@ export default function parse(sourceText: string): StandardResult {
     }
   }
 
+  trajectorySequenceList.forEach((e) =>
+    buildTrajectorySequence(e, {
+      velConstraint: defaultConstraints.velConstraint,
+      accelConstraint: defaultConstraints.accelConstraint,
+    })
+  );
+
   return {
     success: true,
     warnings: [],
@@ -130,7 +146,7 @@ export default function parse(sourceText: string): StandardResult {
 
 function extractFromVariableDeclarationStatement(
   declaration: VariableDeclaration
-): TrajectorySequenceBuilder | null {
+): TrajectorySequenceBuilderType | null {
   return null;
 }
 
@@ -152,14 +168,7 @@ function extractFromExpressionStatement({
         null
       );
 
-      if (expressionValue.success) {
-        // TODO: Implement
-        console.log("Success", expressionValue.payload);
-      } else {
-        return { success: false, errors: expressionValue.errors };
-      }
-
-      break;
+      return expressionValue;
     }
     case "MemberExpression":
       // TODO check if its a known function call and error out?
@@ -253,8 +262,8 @@ type GetNewExpressionValueReturn =
       success: true;
       warnings: string[];
       payload:
-        | { type: "Pose2d"; value: Pose2d }
-        | { type: "Vector2d"; value: Vector2d };
+        | { type: "Pose2d"; value: geometry.Pose2d }
+        | { type: "Vector2d"; value: geometry.Vector2d };
     }
   | ReturnType<typeof StandardResultError>;
 function getNewExpressionValue(
@@ -277,11 +286,11 @@ function getNewExpressionValue(
             warnings: [],
             payload: {
               type: "Pose2d",
-              value: {
-                x: evalParams.paramValues[0],
-                y: evalParams.paramValues[1],
-                heading: evalParams.paramValues[2],
-              },
+              value: new geometry.Pose2d(
+                evalParams.paramValues[0],
+                evalParams.paramValues[1],
+                evalParams.paramValues[2]
+              ),
             },
           };
         } else {
@@ -302,10 +311,10 @@ function getNewExpressionValue(
             warnings: [],
             payload: {
               type: "Vector2d",
-              value: {
-                x: evalParams.paramValues[0],
-                y: evalParams.paramValues[1],
-              },
+              value: new geometry.Vector2d(
+                evalParams.paramValues[0],
+                evalParams.paramValues[1]
+              ),
             },
           };
         } else {
@@ -561,7 +570,7 @@ function getCallExpressionValue(
           });
 
           if (validateParams.success) {
-            const tsb: TrajectorySequenceBuilder = {
+            const tsb: TrajectorySequenceBuilderType = {
               startPose: validateParams.paramValues[0],
               builderCalls: [],
             };
@@ -596,7 +605,6 @@ function getCallExpressionValue(
               const validParam = loopValidateParams.find(
                 (e) => e.verifyParameters.success
               );
-              console.log(validParam);
               if (
                 validParam !== undefined &&
                 validParam.verifyParameters.success
@@ -605,16 +613,24 @@ function getCallExpressionValue(
                 if (member.object.name === "SampleMecanumDrive") {
                   switch (member.property.name) {
                     case "getVelocityConstraint":
-                      payloadVal = {
-                        maxVel: validParam.verifyParameters.paramValues[0],
-                        maxAngVel: validParam.verifyParameters.paramValues[1],
-                        trackWidth: validParam.verifyParameters.paramValues[2],
-                      } as TrajectoryVelocityConstraint;
+                      payloadVal = new trajectory.constraints.MinVelocityConstraint(
+                        [
+                          new trajectory.constraints.AngularVelocityConstraint(
+                            validParam.verifyParameters.paramValues[1]
+                          ),
+                          new trajectory.constraints.MecanumVelocityConstraint(
+                            validParam.verifyParameters.paramValues[0],
+                            validParam.verifyParameters.paramValues[2],
+                            validParam.verifyParameters.paramValues[2],
+                            1
+                          ),
+                        ]
+                      );
                       break;
                     case "getAccelerationConstraint":
-                      payloadVal = {
-                        maxAccel: validParam.verifyParameters.paramValues[0],
-                      } as TrajectoryAccelerationConstraint;
+                      payloadVal = new trajectory.constraints.ProfileAccelerationConstraint(
+                        validParam.verifyParameters.paramValues[0]
+                      );
                       break;
                   }
                 }
@@ -675,7 +691,7 @@ function getCallExpressionValue(
 
                 const validParam = loopValidateParams.find((e) => e.success);
                 if (validParam !== undefined && validParam.success) {
-                  const tsb: TrajectorySequenceBuilder = {
+                  const tsb: TrajectorySequenceBuilderType = {
                     startPose: lastValue.value.startPose,
                     builderCalls: [
                       ...lastValue.value.builderCalls,

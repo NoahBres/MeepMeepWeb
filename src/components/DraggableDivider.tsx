@@ -16,7 +16,7 @@ const DraggableDividerVertical = ({
   style,
 }: {
   onDrag: (e: AbsoluteDragEvent) => void;
-  onMouseUp: (e: MouseEvent) => void;
+  onMouseUp?: (e: MouseEvent) => void;
   anchor?: "left" | "right";
   style?: CSSProperties;
 }) => {
@@ -47,7 +47,7 @@ const DraggableDividerHorizontal = ({
   style,
 }: {
   onDrag: (e: AbsoluteDragEvent) => void;
-  onMouseUp: (e: MouseEvent) => void;
+  onMouseUp?: (e: MouseEvent) => void;
   anchor?: "bottom" | "top";
   style?: CSSProperties;
 }) => {

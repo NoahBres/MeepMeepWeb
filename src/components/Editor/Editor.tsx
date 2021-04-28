@@ -2,6 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 
 import parse from "../../parser/parser";
 import tokenize, { TokenPlus } from "../../parser/tokenizer";
+import {
+  TrajectoryAccelerationConstraintType,
+  TrajectoryVelocityConstraintType,
+} from "../../parser/TranslationMeta";
+import { toRadians } from "../../util";
 
 import styles from "./Editor.module.css";
 
@@ -17,6 +22,16 @@ const Editor = ({ onChange, className }: Props) => {
   const [sourceText, setSourceText] = useState("");
 
   const [tokenizedText, setTokenizedText] = useState<TokenPlus[]>([]);
+
+  const temporaryVelConstraint: TrajectoryVelocityConstraintType = {
+    maxVel: 50,
+    maxAngVel: toRadians(180),
+    trackWidth: 15,
+  };
+
+  const temporaryAccelConstraint: TrajectoryAccelerationConstraintType = {
+    maxAccel: 50,
+  };
 
   useEffect(() => {
     const onScroll = () => {
@@ -63,7 +78,10 @@ const Editor = ({ onChange, className }: Props) => {
 
   useEffect(() => {
     console.log("--------Parsing--------");
-    const parseResult = parse(sourceText);
+    const parseResult = parse(sourceText, {
+      velConstraint: temporaryVelConstraint,
+      accelConstraint: temporaryAccelConstraint,
+    });
     console.log(parseResult);
   }, [tokenizedText]);
 
