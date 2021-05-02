@@ -36,7 +36,13 @@ kotlin {
                 implementation(kotlin("test-annotations-common"))
             }
         }
-        val jsMain by getting
+        val jsMain by getting {
+            dependencies {
+                implementation(npm("mathjs", "9.3.2"))
+
+            }
+        }
+
         val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))

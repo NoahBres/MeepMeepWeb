@@ -1,20 +1,8 @@
 package path
 
-import commons.math4.linear.Array2DRowRealMatrix
-import commons.math4.linear.LUDecomposition
+import mathjs
 
 @Suppress("TopLevelPropertyNaming")
-private val COEFF_MATRIX = commons.math4.linear.Array2DRowRealMatrix(
-    arrayOf(
-        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 1.0),
-        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
-        doubleArrayOf(0.0, 0.0, 0.0, 2.0, 0.0, 0.0),
-        doubleArrayOf(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
-        doubleArrayOf(5.0, 4.0, 3.0, 2.0, 1.0, 0.0),
-        doubleArrayOf(20.0, 12.0, 6.0, 2.0, 0.0, 0.0)
-    )
-)
-
 /**
  * Quintic polynomial interpolated according to the provided derivatives.
  *
@@ -41,29 +29,31 @@ class QuinticPolynomial(
     val f: Double
 
     init {
-        val target =
-            commons.math4.linear.Array2DRowRealMatrix(
-                arrayOf(
-                    doubleArrayOf(
-                        start,
-                        startDeriv,
-                        startSecondDeriv,
-                        end,
-                        endDeriv,
-                        endSecondDeriv
-                    )
-                )
-            ).transpose()
+        val coeff2 = mathjs.lusolve(
+            arrayOf(
+                arrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 1.0),
+                arrayOf(0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
+                arrayOf(0.0, 0.0, 0.0, 2.0, 0.0, 0.0),
+                arrayOf(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+                arrayOf(5.0, 4.0, 3.0, 2.0, 1.0, 0.0),
+                arrayOf(20.0, 12.0, 6.0, 2.0, 0.0, 0.0)
+            ),
+            arrayOf(
+                start,
+                startDeriv,
+                startSecondDeriv,
+                end,
+                endDeriv,
+                endSecondDeriv
+            )
+        ) as Array<Array<Double>>
 
-        val solver = LUDecomposition(COEFF_MATRIX).solver
-        val coeff = solver.solve(target)
-
-        a = coeff.getEntry(0, 0)
-        b = coeff.getEntry(1, 0)
-        c = coeff.getEntry(2, 0)
-        d = coeff.getEntry(3, 0)
-        e = coeff.getEntry(4, 0)
-        f = coeff.getEntry(5, 0)
+        a = coeff2[0][0]
+        b = coeff2[1][0]
+        c = coeff2[2][0]
+        d = coeff2[3][0]
+        e = coeff2[4][0]
+        f = coeff2[5][0]
     }
 
     /**
@@ -85,4 +75,6 @@ class QuinticPolynomial(
      * Returns the third derivative of the polynomial at [t].
      */
     fun thirdDeriv(t: Double) = (60 * a * t + 24 * b) * t + 6 * c
+
+    override fun toString() = ("${a}*t^5+${b}*t^4+${c}*t^3+${d}*t^2+${e}*t+${f}")
 }

@@ -41,10 +41,10 @@ class PathBuilder private constructor(
     internal val s: Double?
 ) {
     constructor(startPose: Pose2d, startTangent: Double = startPose.heading) :
-        this(startPose, startTangent, null, null)
+            this(startPose, startTangent, null, null)
 
     constructor(startPose: Pose2d, reversed: Boolean) :
-        this(startPose, Angle.norm(startPose.heading + if (reversed) PI else 0.0))
+            this(startPose, Angle.norm(startPose.heading + if (reversed) PI else 0.0))
 
     constructor(path: Path, s: Double) : this(null, null, path, s)
 
@@ -83,10 +83,10 @@ class PathBuilder private constructor(
             val startDeriv = path!!.internalDeriv(s!!).vec()
             val startSecondDeriv = path.internalSecondDeriv(s).vec()
             QuinticSpline.Knot(startPose.vec(), startDeriv, startSecondDeriv) to
-                QuinticSpline.Knot(endPosition, Vector2d.polar(derivMag, endTangent))
+                    QuinticSpline.Knot(endPosition, Vector2d.polar(derivMag, endTangent))
         } else {
             QuinticSpline.Knot(startPose.vec(), Vector2d.polar(derivMag, currentTangent!!)) to
-                QuinticSpline.Knot(endPosition, Vector2d.polar(derivMag, endTangent))
+                    QuinticSpline.Knot(endPosition, Vector2d.polar(derivMag, endTangent))
         }
 
         return QuinticSpline(startWaypoint, endWaypoint)
