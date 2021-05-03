@@ -29,7 +29,7 @@ class QuinticPolynomial(
     val f: Double
 
     init {
-        val coeff2 = mathjs.lusolve(
+        val coeff = mathjs.lusolve(
             arrayOf(
                 arrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 1.0),
                 arrayOf(0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
@@ -48,12 +48,12 @@ class QuinticPolynomial(
             )
         ) as Array<Array<Double>>
 
-        a = coeff2[0][0]
-        b = coeff2[1][0]
-        c = coeff2[2][0]
-        d = coeff2[3][0]
-        e = coeff2[4][0]
-        f = coeff2[5][0]
+        a = coeff[0][0]
+        b = coeff[1][0]
+        c = coeff[2][0]
+        d = coeff[3][0]
+        e = coeff[4][0]
+        f = coeff[5][0]
     }
 
     /**

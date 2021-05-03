@@ -39,7 +39,6 @@ kotlin {
         val jsMain by getting {
             dependencies {
                 implementation(npm("mathjs", "9.3.2"))
-
             }
         }
 
