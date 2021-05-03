@@ -1,4 +1,5 @@
 import { parseScript, Program } from "esprima";
+
 import {
   ExpressionStatement,
   VariableDeclaration,
@@ -23,6 +24,7 @@ import {
 import { geometry, trajectory } from "roadrunnerjs";
 
 import { isNumber } from "../util";
+import { TrajectorySequence } from "./trajectorysequence/TrajectorySequence";
 
 type Error = {
   description: string;
@@ -31,10 +33,11 @@ type Error = {
   column: number;
 };
 
-type StandardResult =
+export type StandardResult<T> =
   | {
       success: true;
       warnings: string[];
+      payload: T;
     }
   // Todo fix errors
   | { success: false; errors: string[] | Error[] };
@@ -79,7 +82,7 @@ export default function parse(
     velConstraint: TrajectoryVelocityConstraintType;
     accelConstraint: TrajectoryAccelerationConstraintType;
   }
-): StandardResult {
+): StandardResult<TrajectorySequence[]> {
   if (sourceText.trim() === "") {
     return {
       success: false,
@@ -131,17 +134,33 @@ export default function parse(
     }
   }
 
-  trajectorySequenceList.forEach((e) =>
+  const date = new Date().getTime();
+  const builtSequencesResult = trajectorySequenceList.map((e) =>
     buildTrajectorySequence(e, {
       velConstraint: defaultConstraints.velConstraint,
       accelConstraint: defaultConstraints.accelConstraint,
     })
   );
+  console.log(`Building: ${new Date().getTime() - date}ms`);
 
-  return {
-    success: true,
-    warnings: [],
-  };
+  if (builtSequencesResult.every((e) => e.success)) {
+    return {
+      success: true,
+      payload: builtSequencesResult.reduce<TrajectorySequence[]>(
+        (acc, curr) => {
+          if (curr.success) return [...acc, curr.payload];
+          return acc;
+        },
+        []
+      ),
+      warnings: [],
+    };
+  } else {
+    return {
+      success: false,
+      errors: [],
+    };
+  }
 }
 
 function extractFromVariableDeclarationStatement(

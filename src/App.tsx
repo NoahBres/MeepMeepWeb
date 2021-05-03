@@ -14,6 +14,8 @@ import {
 import { AbsoluteDraggableProvider } from "./absolute-draggable";
 import useResizeObserver from "use-resize-observer";
 import { GlobalTrajectoryManager } from "./global-trajectory-manager/GlobalTrajectoryManager";
+import { Field } from "./components/Field";
+import { Timeline } from "./components/Timeline";
 
 const MIN_WIDTH_DEV_PANEL = 300;
 
@@ -40,7 +42,7 @@ function App() {
         >
           <div
             ref={fieldParentRef}
-            className="relative flex items-center justify-center"
+            className="relative flex flex-col items-center justify-center"
             style={{
               backgroundPosition: "10px 10px",
               backgroundRepeat: "round",
@@ -48,7 +50,6 @@ function App() {
             }}
           >
             <div
-              className="overflow-hidden border border-blue-200 rounded shadow-lg bg-gray-50"
               style={{
                 width: `${
                   Math.min(fieldParentWidth ?? 0, fieldparentHeight ?? 0) * 0.8
@@ -57,7 +58,10 @@ function App() {
                   Math.min(fieldParentWidth ?? 0, fieldparentHeight ?? 0) * 0.8
                 }px`,
               }}
-            ></div>
+            >
+              <Field />
+            </div>
+            <Timeline className="mt-8" />
 
             <DraggableDividerVertical
               // Make the vertical divider a higher z-index than the horizontal (default z-index of 10)

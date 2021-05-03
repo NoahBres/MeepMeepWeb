@@ -1,7 +1,7 @@
 import { SequenceSegment } from "./SequenceSegment";
 
 export class TrajectorySequence {
-  private readonly sequenceList: readonly SequenceSegment[];
+  readonly sequenceList: readonly SequenceSegment[];
 
   constructor(sequenceList: SequenceSegment[]) {
     if (sequenceList.length === 0)

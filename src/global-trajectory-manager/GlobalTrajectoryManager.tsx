@@ -6,14 +6,15 @@ import React, {
   useContext,
 } from "react";
 import { trajectory } from "roadrunnerjs";
+import { TrajectorySequence } from "../parser/trajectorysequence/TrajectorySequence";
 
-type GlobalTrajectoryState = {
-  trajectory: trajectory.Trajectory | null;
+export type GlobalTrajectoryState = {
+  trajectorySequence: TrajectorySequence | null;
 };
 
 type GlobalTrajectoryActions = {
   type: "setTrajectory";
-  trajectory: trajectory.Trajectory;
+  trajectorySequence: TrajectorySequence;
 };
 
 const GlobalTrajectoryReducer = (
@@ -24,13 +25,13 @@ const GlobalTrajectoryReducer = (
     case "setTrajectory":
       return {
         ...state,
-        trajectory: action.trajectory,
+        trajectorySequence: action.trajectorySequence,
       };
   }
 };
 
 const defaultState: GlobalTrajectoryState = {
-  trajectory: null,
+  trajectorySequence: null,
 };
 
 const GlobalTrajectoryManagerState = createContext<GlobalTrajectoryState>(

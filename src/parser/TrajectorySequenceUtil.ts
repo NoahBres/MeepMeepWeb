@@ -1,5 +1,7 @@
 import { geometry, trajectory } from "roadrunnerjs";
 import { toRadians } from "../util";
+import { StandardResult } from "./parser";
+import { TrajectorySequence } from "./trajectorysequence/TrajectorySequence";
 import { TrajectorySequenceBuilder } from "./trajectorysequence/TrajectorySequenceBuilder";
 
 import {
@@ -14,7 +16,7 @@ export function buildTrajectorySequence(
     velConstraint: TrajectoryVelocityConstraintType;
     accelConstraint: TrajectoryAccelerationConstraintType;
   }
-) {
+): StandardResult<TrajectorySequence> {
   const tsb = new TrajectorySequenceBuilder(
     new geometry.Pose2d(
       parsedBuilder.startPose.x,
@@ -32,8 +34,6 @@ export function buildTrajectorySequence(
     toRadians(180)
   );
 
-  console.log(parsedBuilder);
-
   parsedBuilder.builderCalls.forEach((e) => {
     const method = tsb[e.name];
 
@@ -42,8 +42,18 @@ export function buildTrajectorySequence(
     }
   });
 
-  console.log(tsb);
-  console.log(parsedBuilder);
+  try {
+    return {
+      success: true,
+      warnings: [],
+      payload: tsb.build(),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      errors: [error],
+    };
+  }
 }
 
 function getVelocityConstraint(

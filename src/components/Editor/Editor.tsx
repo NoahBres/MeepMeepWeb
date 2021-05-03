@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useGlobalTrajectoryManagerDispatch } from "../../global-trajectory-manager/GlobalTrajectoryManager";
 
 import parse from "../../parser/parser";
 import tokenize, { TokenPlus } from "../../parser/tokenizer";
@@ -18,6 +19,8 @@ type Props = {
 const Editor = ({ onChange, className }: Props) => {
   const highlightingRef = useRef<HTMLPreElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  const globalTrajectoryDispatch = useGlobalTrajectoryManagerDispatch();
 
   const [sourceText, setSourceText] = useState("");
 
@@ -78,11 +81,22 @@ const Editor = ({ onChange, className }: Props) => {
 
   useEffect(() => {
     console.log("--------Parsing--------");
+    const date = new Date().getTime();
     const parseResult = parse(sourceText, {
       velConstraint: temporaryVelConstraint,
       accelConstraint: temporaryAccelConstraint,
     });
     console.log(parseResult);
+    console.log(`Parsing: ${new Date().getTime() - date}ms`);
+
+    if (parseResult.success) {
+      if (parseResult.payload.length > 0) {
+        globalTrajectoryDispatch({
+          type: "setTrajectory",
+          trajectorySequence: parseResult.payload[0],
+        });
+      }
+    }
   }, [tokenizedText]);
 
   const renderedText = tokenizedText.map((e, i) => {
