@@ -114,7 +114,7 @@ const Field = () => {
         className="absolute top-0 text-3xl font-extrabold tracking-wide text-blue-700 text-opacity-80 left-6"
         style={{ transform: "translateY(-1.48rem)" }}
       >
-        Field
+        🗺 Field
       </h1>
       <div className="absolute top-0 left-0 w-full h-full border border-blue-200 rounded-lg shadow-lg bg-gray-50">
         <canvas

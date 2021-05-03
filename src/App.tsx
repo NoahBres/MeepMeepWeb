@@ -15,7 +15,7 @@ import { AbsoluteDraggableProvider } from "./absolute-draggable";
 import useResizeObserver from "use-resize-observer";
 import { GlobalTrajectoryManager } from "./global-trajectory-manager/GlobalTrajectoryManager";
 import { Field } from "./components/Field";
-import { Timeline } from "./components/Timeline";
+import { Timeline } from "./components/Timeline/Timeline";
 
 const MIN_WIDTH_DEV_PANEL = 300;
 
@@ -81,7 +81,9 @@ function App() {
           >
             <div className="relative flex flex-col border border-gray-100 bg-gray-50">
               <div className="flex items-center justify-between px-4 py-2 pb-3 mx-2 mt-2 mb-3 bg-blue-100 rounded-lg">
-                <h1 className="font-bold text-blue-900">Your Code</h1>
+                <h1 className="font-bold text-blue-900">
+                  <span className="mr-2">👩‍💻</span>Your Code
+                </h1>
                 <Menu as="div" className="relative">
                   {({ open }) => (
                     <>
