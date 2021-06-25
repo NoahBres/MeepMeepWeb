@@ -3,8 +3,6 @@
 
   @apply bg-blue-500;
   @apply h-2 outline-none appearance-none;
-  @apply opacity-70 hover:opacity-100;
-  @apply transition-opacity;
 
   @apply cursor-pointer pointer-events-auto;
 }
