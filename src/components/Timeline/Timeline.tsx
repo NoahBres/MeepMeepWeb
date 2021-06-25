@@ -13,18 +13,40 @@ type Props = {
 
 type TimelineStateContext = {};
 
-const timelineStateMachine = createMachine<TimelineStateContext>({
+type TimelineStateEvent =
+  | { type: "TOGGLE" }
+  | { type: "DRAG" }
+  | { type: "RELEASE" };
+
+const timelineStateMachine = createMachine<
+  TimelineStateContext,
+  TimelineStateEvent
+>({
   id: "timelineState",
   initial: "playing",
-  context: {},
   states: {
     playing: {
-      on: { TOGGLE: "paused" },
+      on: { TOGGLE: "paused", DRAG: "dragging" },
     },
     paused: {
-      on: { TOGGLE: "playing" },
+      on: { TOGGLE: "playing", DRAG: "dragging" },
     },
-    dragging: {},
+    dragging: {
+      on: {
+        RELEASE: [
+          {
+            target: "playing",
+            cond: (_ctx, _e, { state }) =>
+              state.history?.matches("playing") ?? false,
+          },
+          {
+            target: "paused",
+            cond: (_ctx, _e, { state }) =>
+              state.history?.matches("paused") ?? false,
+          },
+        ],
+      },
+    },
   },
 });
 
@@ -98,7 +120,16 @@ const Timeline = ({ className }: Props) => {
         style={{ transform: "translateY(-1.48rem)" }}
       >
         <button onClick={() => sendTimelineState("TOGGLE")}>
-          {timelineState.matches("paused") ? "⏸" : "⏲"}
+          {(() => {
+            if (timelineState.matches("paused")) {
+              return "⏸";
+            } else if (timelineState.matches("playing")) {
+              return "⏲";
+            } else {
+              if (timelineState.history?.matches("playing")) return "⏲";
+              else return "⏸";
+            }
+          })()}
         </button>{" "}
         Timeline
       </h1>
@@ -114,6 +145,8 @@ const Timeline = ({ className }: Props) => {
               step="0.001"
               onChange={(evt) => setCurrentTime(parseFloat(evt.target.value))}
               style={{ zIndex: 2 }}
+              onMouseDown={() => sendTimelineState("DRAG")}
+              onMouseUp={() => sendTimelineState("RELEASE")}
             />
             <div className={styles.timeIndicator}>
               <span className="font-extrabold text-orange-500 text-opacity-100 place-self-end">
