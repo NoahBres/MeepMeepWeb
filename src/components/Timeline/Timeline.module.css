@@ -1,0 +1,29 @@
+.slider {
+  @apply w-full;
+
+  @apply bg-blue-500;
+  @apply h-2 outline-none appearance-none;
+  @apply opacity-70 hover:opacity-100;
+  @apply transition-opacity;
+
+  @apply cursor-pointer pointer-events-auto;
+}
+
+.slider::-webkit-slider-thumb {
+  @apply appearance-none;
+
+  @apply w-3 h-3 hover:w-4 hover:h-4;
+  @apply ring-offset-2 ring-offset-blue-50 ring-blue-300 ring-opacity-0 ring-2 hover:ring-opacity-70;
+
+  @apply bg-blue-500;
+  @apply transition-all rounded-full;
+}
+
+.timeIndicator {
+  @apply absolute grid place-items-center;
+  @apply text-xl font-bold tracking-wide;
+  @apply -translate-x-1/2 translate-y-[-11px] left-1/2;
+  @apply text-gray-400 tabular-nums;
+
+  grid-template-columns: 1fr 1rem 1fr;
+}

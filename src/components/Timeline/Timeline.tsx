@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useGlobalTrajectoryManagerState } from "../../global-trajectory-manager/GlobalTrajectoryManager";
 
+import styles from "./Timeline.module.css";
+
 type Props = {
   className?: string;
 };
@@ -30,16 +32,30 @@ const Timeline = ({ className }: Props) => {
       </h1>
       <div className="absolute top-0 left-0 w-full border border-blue-200 rounded-md shadow-lg h-14 bg-gray-50">
         {errorState === "success" ? (
-          <input
-            className="absolute w-full top-2/4"
-            style={{ transform: "translateY(-50%)" }}
-            type="range"
-            min="0"
-            max={globalTrajectoryManagerState.trajectorySequence?.duration()}
-            value={currentTime}
-            step="0.001"
-            onChange={(evt) => setCurrentTime(parseFloat(evt.target.value))}
-          />
+          <div className="absolute grid items-center w-full h-full pointer-events-none isolate">
+            <input
+              className={styles.slider}
+              type="range"
+              min="0"
+              max={globalTrajectoryManagerState.trajectorySequence?.duration()}
+              value={currentTime}
+              step="0.001"
+              onChange={(evt) => setCurrentTime(parseFloat(evt.target.value))}
+              style={{ zIndex: 2 }}
+            />
+            <div className={styles.timeIndicator}>
+              <span className="text-blue-900 text-opacity-100 place-self-end">
+                {currentTime.toFixed(2)}
+              </span>
+              <span className="place-self-center">:</span>
+              <span className="place-self-start">
+                {globalTrajectoryManagerState.trajectorySequence
+                  ?.duration()
+                  .toFixed(2)}
+                s
+              </span>
+            </div>
+          </div>
         ) : (
           <div className="flex items-center justify-center w-full h-full">
             {errorState === "no-trajectory-sequence" ? (
