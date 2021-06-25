@@ -21,9 +21,9 @@
 
 .timeIndicator {
   @apply absolute grid place-items-center;
-  @apply text-xl font-bold tracking-wide;
+  @apply text-xl font-semibold;
   @apply -translate-x-1/2 translate-y-[-11px] left-1/2;
   @apply text-gray-400 tabular-nums;
 
-  grid-template-columns: 1fr 1rem 1fr;
+  grid-template-columns: 1fr 0.7rem 1fr;
 }
