@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { createMachine } from "xstate";
 import { useMachine } from "@xstate/react";
 
-import { useGlobalTrajectoryManagerState } from "../../global-trajectory-manager/GlobalTrajectoryManager";
+import { useGlobalTrajectoryManagerState } from "../../state/GlobalTrajectoryManager";
 
 import styles from "./Timeline.module.css";
 import {
@@ -11,6 +11,7 @@ import {
   TurnSegment,
   WaitSegment,
 } from "../../parser/trajectorysequence/SequenceSegment";
+import { useGlobalTimelineManager } from "../../state/GlobalTimelineManager";
 
 type Props = {
   className?: string;
@@ -60,11 +61,11 @@ const Timeline = ({ className }: Props) => {
 
   const globalTrajectoryManagerState = useGlobalTrajectoryManagerState();
 
-  const requestAnimationFrameRef = useRef(0);
-  const previousTimeRef = useRef(-1);
+  const [state, send] = useGlobalTimelineManager();
 
-  const [currentTime, setCurrentTime] = useState(0);
-  const [timelineState, sendTimelineState] = useMachine(timelineStateMachine);
+  useEffect(() => {
+    console.log(state);
+  }, [state]);
 
   const errorState =
     globalTrajectoryManagerState.trajectorySequence === null
@@ -74,45 +75,15 @@ const Timeline = ({ className }: Props) => {
       ? "empty-trajectory-sequence"
       : "success";
 
-  function sliderProgressLoop(time: number) {
-    if (previousTimeRef.current !== -1) {
-      const dt = time - previousTimeRef.current;
-
-      if (timelineState.matches("playing")) {
-        setCurrentTime((prevTime) => {
-          if (
-            !globalTrajectoryManagerState.trajectorySequence ||
-            prevTime >=
-              globalTrajectoryManagerState.trajectorySequence?.duration()
-          )
-            return 0;
-
-          return prevTime + dt * 0.001;
-        });
-      }
-    }
-
-    previousTimeRef.current = time;
-
-    requestAnimationFrameRef.current =
-      requestAnimationFrame(sliderProgressLoop);
-  }
-
   useEffect(() => {
     const onPress = (event: KeyboardEvent) => {
-      if (event.code === "Space") sendTimelineState("TOGGLE");
+      if (event.code === "Space") send("TOGGLE");
     };
 
     containerRef.current?.addEventListener("keydown", onPress);
 
     return () => containerRef.current?.removeEventListener("keydown", onPress);
   }, []);
-
-  useEffect(() => {
-    requestAnimationFrameRef.current =
-      requestAnimationFrame(sliderProgressLoop);
-    return () => cancelAnimationFrame(requestAnimationFrameRef.current);
-  });
 
   return (
     <div
@@ -124,14 +95,14 @@ const Timeline = ({ className }: Props) => {
         className="absolute top-0 text-3xl font-extrabold tracking-wide text-blue-700 text-opacity-80 left-6"
         style={{ transform: "translateY(-1.48rem)" }}
       >
-        <button onClick={() => sendTimelineState("TOGGLE")}>
+        <button onClick={() => send("TOGGLE")}>
           {(() => {
-            if (timelineState.matches("paused")) {
+            if (state.matches("paused")) {
               return "⏸";
-            } else if (timelineState.matches("playing")) {
+            } else if (state.matches("playing")) {
               return "⏲";
             } else {
-              if (timelineState.history?.matches("playing")) return "⏲";
+              if (state.context.stateBeforeDragging === "playing") return "⏲";
               else return "⏸";
             }
           })()}
@@ -146,16 +117,18 @@ const Timeline = ({ className }: Props) => {
               type="range"
               min="0"
               max={globalTrajectoryManagerState.trajectorySequence?.duration()}
-              value={currentTime}
+              value={state.context.currentTime}
               step="0.001"
-              onChange={(evt) => setCurrentTime(parseFloat(evt.target.value))}
+              onChange={(evt) =>
+                send({ type: "SET.TIME", time: parseFloat(evt.target.value) })
+              }
               style={{ zIndex: 2 }}
-              onMouseDown={() => sendTimelineState("DRAG")}
-              onMouseUp={() => sendTimelineState("RELEASE")}
+              onMouseDown={() => send("DRAG")}
+              onMouseUp={() => send("RELEASE")}
             />
             <div className={styles.timeIndicator}>
               <span className="font-extrabold text-orange-500 text-opacity-100 place-self-end">
-                {currentTime.toFixed(2)}
+                {state.context.currentTime.toFixed(2)}
               </span>
               <span className="place-self-center translate-x-[1px]">/</span>
               <span className="place-self-start">
