@@ -7,7 +7,7 @@ import { v4 as uuid } from "uuid";
 import {
   GlobalTrajectoryState,
   useGlobalTrajectoryManagerState,
-} from "../global-trajectory-manager/GlobalTrajectoryManager";
+} from "../state/GlobalTrajectoryManager";
 import { TrajectorySegment } from "../parser/trajectorysequence/SequenceSegment";
 import { TrajectorySequence } from "../parser/trajectorysequence/TrajectorySequence";
 

@@ -34,9 +34,8 @@ const defaultState: GlobalTrajectoryState = {
   trajectorySequence: null,
 };
 
-const GlobalTrajectoryManagerState = createContext<GlobalTrajectoryState>(
-  defaultState
-);
+const GlobalTrajectoryManagerState =
+  createContext<GlobalTrajectoryState>(defaultState);
 const GlobalTrajectoryManagerDispatch = createContext<
   Dispatch<GlobalTrajectoryActions> | undefined
 >(undefined);
@@ -60,7 +59,7 @@ const useGlobalTrajectoryManagerState = () => {
   const state = useContext(GlobalTrajectoryManagerState);
   if (typeof state === "undefined") {
     throw new Error(
-      "useGlobalTrajectoryManagerState must be used within GlobalTrajectorManager"
+      "useGlobalTrajectoryManagerState must be used within GlobalTrajectoryManager"
     );
   }
 
@@ -71,7 +70,7 @@ const useGlobalTrajectoryManagerDispatch = () => {
   const state = useContext(GlobalTrajectoryManagerDispatch);
   if (typeof state === "undefined") {
     throw new Error(
-      "useGlobalTrajectoryManagerDispatch must be used within GlobalTrajectorManager"
+      "useGlobalTrajectoryManagerDispatch must be used within GlobalTrajectoryManager"
     );
   }
 
@@ -81,7 +80,7 @@ const useGlobalTrajectoryManagerDispatch = () => {
 const useGlobalTrajectoryManager = () => {
   return [
     useGlobalTrajectoryManagerState(),
-    useGlobalTrajectoryManagerDispatch,
+    useGlobalTrajectoryManagerDispatch(),
   ];
 };
 

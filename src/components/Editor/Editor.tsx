@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useGlobalTrajectoryManagerDispatch } from "../../global-trajectory-manager/GlobalTrajectoryManager";
+import { useGlobalTrajectoryManagerDispatch } from "../../state/GlobalTrajectoryManager";
 
 import parse from "../../parser/parser";
 import tokenize, { TokenPlus } from "../../parser/tokenizer";
