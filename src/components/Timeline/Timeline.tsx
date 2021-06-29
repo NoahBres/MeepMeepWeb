@@ -91,10 +91,7 @@ const Timeline = ({ className }: Props) => {
       ref={containerRef}
       tabIndex={0}
     >
-      <h1
-        className="absolute top-0 text-3xl font-extrabold tracking-wide text-blue-700 text-opacity-80 left-6"
-        style={{ transform: "translateY(-1.48rem)" }}
-      >
+      <h1 className="absolute top-0 text-2xl font-extrabold tracking-wide text-blue-700 lg:text-3xl text-opacity-80 left-6 translate-y-[-1.3rem] lg:translate-y-[-1.48rem]">
         <button onClick={() => send("TOGGLE")}>
           {(() => {
             if (state.matches("paused")) {
@@ -109,6 +106,17 @@ const Timeline = ({ className }: Props) => {
         </button>{" "}
         Timeline
       </h1>
+      <div className={styles.timeIndicator}>
+        <span className="font-extrabold text-orange-500 text-opacity-100 place-self-end">
+          {state.context.currentTime.toFixed(2)}
+        </span>
+        <span className="place-self-center translate-x-[1px]">/</span>
+        <span className="place-self-start">
+          {globalTrajectoryManagerState.trajectorySequence
+            ?.duration()
+            .toFixed(2)}
+        </span>
+      </div>
       <div className="absolute top-0 left-0 w-full border border-blue-200 rounded-md shadow-lg h-14 bg-gray-50">
         {errorState === "success" ? (
           <div className="absolute grid items-center w-full h-full isolate">
@@ -126,18 +134,6 @@ const Timeline = ({ className }: Props) => {
               onMouseDown={() => send("DRAG")}
               onMouseUp={() => send("RELEASE")}
             />
-            <div className={styles.timeIndicator}>
-              <span className="font-extrabold text-orange-500 text-opacity-100 place-self-end">
-                {state.context.currentTime.toFixed(2)}
-              </span>
-              <span className="place-self-center translate-x-[1px]">/</span>
-              <span className="place-self-start">
-                {globalTrajectoryManagerState.trajectorySequence
-                  ?.duration()
-                  .toFixed(2)}
-                s
-              </span>
-            </div>
             {/* TODO extract this into a component and memoize */}
             <div
               className="absolute bottom-0 left-0 flex flex-row items-end w-full overflow-hidden rounded-b-md"

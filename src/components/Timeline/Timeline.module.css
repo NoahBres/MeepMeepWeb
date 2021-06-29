@@ -18,10 +18,15 @@
 }
 
 .timeIndicator {
-  @apply absolute grid place-items-center;
-  @apply text-xl font-semibold;
-  @apply -translate-x-1/2 translate-y-[-11px] left-1/2;
+  @apply grid place-items-center;
+
+  @apply absolute top-0;
+  @apply lg:translate-x-1/2 right-6 lg:lg:right-1/2;
+  @apply translate-y-[-1.23rem] lg:translate-y-[-1.38rem];
+  @apply transition-transform hover:translate-y-[-1.5rem] lg:hover:translate-y-[-1.7rem];
+
   @apply text-gray-400 tabular-nums;
+  @apply text-xl font-semibold lg:text-2xl text-opacity-80;
 
   grid-template-columns: 1fr 0.7rem 1fr;
 }
