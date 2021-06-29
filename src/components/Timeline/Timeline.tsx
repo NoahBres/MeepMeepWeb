@@ -1,7 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
-
-import { createMachine } from "xstate";
-import { useMachine } from "@xstate/react";
+import React, { useEffect, useRef } from "react";
 
 import { useGlobalTrajectoryManagerState } from "../../state/GlobalTrajectoryManager";
 
@@ -16,45 +13,6 @@ import { useGlobalTimelineManager } from "../../state/GlobalTimelineManager";
 type Props = {
   className?: string;
 };
-
-type TimelineStateContext = {};
-
-type TimelineStateEvent =
-  | { type: "TOGGLE" }
-  | { type: "DRAG" }
-  | { type: "RELEASE" };
-
-const timelineStateMachine = createMachine<
-  TimelineStateContext,
-  TimelineStateEvent
->({
-  id: "timelineState",
-  initial: "playing",
-  states: {
-    playing: {
-      on: { TOGGLE: "paused", DRAG: "dragging" },
-    },
-    paused: {
-      on: { TOGGLE: "playing", DRAG: "dragging" },
-    },
-    dragging: {
-      on: {
-        RELEASE: [
-          {
-            target: "playing",
-            cond: (_ctx, _e, { state }) =>
-              state.history?.matches("playing") ?? false,
-          },
-          {
-            target: "paused",
-            cond: (_ctx, _e, { state }) =>
-              state.history?.matches("paused") ?? false,
-          },
-        ],
-      },
-    },
-  },
-});
 
 const Timeline = ({ className }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -106,17 +64,19 @@ const Timeline = ({ className }: Props) => {
         </button>{" "}
         Timeline
       </h1>
-      <div className={styles.timeIndicator}>
-        <span className="font-extrabold text-orange-500 text-opacity-100 place-self-end">
-          {state.context.currentTime.toFixed(2)}
-        </span>
-        <span className="place-self-center translate-x-[1px]">/</span>
-        <span className="place-self-start">
-          {globalTrajectoryManagerState.trajectorySequence
-            ?.duration()
-            .toFixed(2)}
-        </span>
-      </div>
+      {state.context.duration !== -1 && (
+        <div className={styles.timeIndicator}>
+          <span className="font-extrabold text-orange-500 text-opacity-100 place-self-end">
+            {state.context.currentTime.toFixed(2)}
+          </span>
+          <span className="place-self-center translate-x-[1px]">/</span>
+          <span className="place-self-start">
+            {globalTrajectoryManagerState.trajectorySequence
+              ?.duration()
+              .toFixed(2)}
+          </span>
+        </div>
+      )}
       <div className="absolute top-0 left-0 w-full border border-blue-200 rounded-md shadow-lg h-14 bg-gray-50">
         {errorState === "success" ? (
           <div className="absolute grid items-center w-full h-full isolate">
