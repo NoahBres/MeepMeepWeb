@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 
 import { useGlobalTrajectoryManagerState } from "../../state/GlobalTrajectoryManager";
 
@@ -21,10 +21,6 @@ const Timeline = ({ className }: Props) => {
 
   const [state, send] = useGlobalTimelineManager();
 
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
-
   const errorState =
     globalTrajectoryManagerState.trajectorySequence === null
       ? "no-trajectory-sequence"
@@ -42,6 +38,55 @@ const Timeline = ({ className }: Props) => {
 
     return () => containerRef.current?.removeEventListener("keydown", onPress);
   }, []);
+
+  const segmentIndicators = useMemo(
+    () => (
+      <div
+        className="absolute bottom-0 left-0 flex flex-row items-end w-full overflow-hidden rounded-b-md"
+        style={{ zIndex: 1 }}
+      >
+        {globalTrajectoryManagerState.trajectorySequence?.sequenceList.map(
+          (seg, i) => {
+            // This is needed only because TS isn't smart enough to assume it's null below
+            if (!globalTrajectoryManagerState.trajectorySequence) return;
+
+            let color = "bg-red-500";
+            let text = "";
+
+            if (seg instanceof TrajectorySegment) {
+              color = "bg-purple-500";
+              text = "trajectory";
+            } else if (seg instanceof TurnSegment) {
+              color = "bg-pink-500";
+              text = "turn";
+            } else if (seg instanceof WaitSegment) {
+              color = "bg-green-500";
+              text = "wait";
+            }
+
+            return (
+              <div
+                key={i}
+                className={`h-[23px] ${color} flex items-center justify-center transition-all hover:h-[23px] opacity-50 hover:opacity-100`}
+                style={{
+                  width: `${
+                    (seg.duration /
+                      globalTrajectoryManagerState.trajectorySequence?.duration()) *
+                    100
+                  }%`,
+                }}
+              >
+                <span className="text-xs text-white pointer-events-none">
+                  {text}
+                </span>
+              </div>
+            );
+          }
+        )}
+      </div>
+    ),
+    [globalTrajectoryManagerState.trajectorySequence]
+  );
 
   return (
     <div
@@ -94,50 +139,7 @@ const Timeline = ({ className }: Props) => {
               onMouseDown={() => send("DRAG")}
               onMouseUp={() => send("RELEASE")}
             />
-            {/* TODO extract this into a component and memoize */}
-            <div
-              className="absolute bottom-0 left-0 flex flex-row items-end w-full overflow-hidden rounded-b-md"
-              style={{ zIndex: 1 }}
-            >
-              {globalTrajectoryManagerState.trajectorySequence?.sequenceList.map(
-                (seg, i) => {
-                  // This is needed only because TS isn't smart enough to assume it's null below
-                  if (!globalTrajectoryManagerState.trajectorySequence) return;
-
-                  let color = "bg-red-500";
-                  let text = "";
-
-                  if (seg instanceof TrajectorySegment) {
-                    color = "bg-purple-500";
-                    text = "trajectory";
-                  } else if (seg instanceof TurnSegment) {
-                    color = "bg-pink-500";
-                    text = "turn";
-                  } else if (seg instanceof WaitSegment) {
-                    color = "bg-green-500";
-                    text = "wait";
-                  }
-
-                  return (
-                    <div
-                      key={i}
-                      className={`h-[23px] ${color} flex items-center justify-center transition-all hover:h-[23px] opacity-50 hover:opacity-100`}
-                      style={{
-                        width: `${
-                          (seg.duration /
-                            globalTrajectoryManagerState.trajectorySequence?.duration()) *
-                          100
-                        }%`,
-                      }}
-                    >
-                      <span className="text-xs text-white pointer-events-none">
-                        {text}
-                      </span>
-                    </div>
-                  );
-                }
-              )}
-            </div>
+            {segmentIndicators}
           </div>
         ) : (
           <div className="flex items-center justify-center w-full h-full">
