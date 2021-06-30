@@ -1,4 +1,6 @@
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, useMemo, ReactNode } from "react";
+
+import { RefreshIcon, TrendingUpIcon } from "@heroicons/react/outline";
 
 import { useGlobalTrajectoryManagerState } from "../../state/GlobalTrajectoryManager";
 
@@ -18,14 +20,14 @@ const Timeline = ({ className }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const globalTrajectoryManagerState = useGlobalTrajectoryManagerState();
+  const trajSeq = globalTrajectoryManagerState.trajectorySequence;
 
   const [state, send] = useGlobalTimelineManager();
 
   const errorState =
-    globalTrajectoryManagerState.trajectorySequence === null
+    trajSeq === null
       ? "no-trajectory-sequence"
-      : globalTrajectoryManagerState.trajectorySequence?.sequenceList.length ===
-        0
+      : trajSeq?.sequenceList.length === 0
       ? "empty-trajectory-sequence"
       : "success";
 
@@ -45,47 +47,77 @@ const Timeline = ({ className }: Props) => {
         className="absolute bottom-0 left-0 flex flex-row items-end w-full overflow-hidden rounded-b-md"
         style={{ zIndex: 1 }}
       >
-        {globalTrajectoryManagerState.trajectorySequence?.sequenceList.map(
-          (seg, i) => {
-            // This is needed only because TS isn't smart enough to assume it's null below
-            if (!globalTrajectoryManagerState.trajectorySequence) return;
+        {(() => {
+          let timeThusFar = 0;
+          let currentSegmentIndex = 0;
 
-            let color = "bg-red-500";
-            let text = "";
+          if (trajSeq?.sequenceList) {
+            for (const [i, seg] of trajSeq.sequenceList.entries()) {
+              if (timeThusFar + seg.duration >= state.context.currentTime) {
+                currentSegmentIndex = i;
+
+                break;
+              } else {
+                timeThusFar += seg.duration;
+              }
+            }
+          }
+
+          return trajSeq?.sequenceList.map((seg, i) => {
+            // This is needed only because TS isn't smart enough to assume it's null below
+            if (!trajSeq) return;
+
+            let text: string | ReactNode = "";
 
             if (seg instanceof TrajectorySegment) {
-              color = "bg-purple-500";
-              text = "trajectory";
+              text = <TrendingUpIcon className="w-4 h-4 rotate-[30deg]" />;
             } else if (seg instanceof TurnSegment) {
-              color = "bg-pink-500";
-              text = "turn";
+              if (seg.totalRotation > 0)
+                text = <RefreshIcon className="w-3 h-3" />;
+              else
+                text = (
+                  <RefreshIcon
+                    className="w-3 h-3"
+                    style={{ transform: "scale(-1, 1)" }}
+                  />
+                );
             } else if (seg instanceof WaitSegment) {
-              color = "bg-green-500";
-              text = "wait";
+              text = "⌛";
             }
 
             return (
               <div
                 key={i}
-                className={`h-[23px] ${color} flex items-center justify-center transition-all hover:h-[23px] opacity-50 hover:opacity-100`}
+                className={`
+                  h-[23px]
+                  flex items-center justify-center
+                  transition-all border-2 border-transparent
+                  ${
+                    i === currentSegmentIndex
+                      ? "hover:border-white"
+                      : "opacity-50 hover:opacity-100"
+                  }`}
                 style={{
-                  width: `${
-                    (seg.duration /
-                      globalTrajectoryManagerState.trajectorySequence?.duration()) *
-                    100
-                  }%`,
+                  width: `${(seg.duration / trajSeq?.duration()) * 100}%`,
+                  backgroundColor:
+                    globalTrajectoryManagerState.trajectorySequenceMeta
+                      .segmentColors[i],
+                  backgroundImage:
+                    seg instanceof TurnSegment
+                      ? `url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 6V5zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E")`
+                      : "",
                 }}
               >
-                <span className="text-xs text-white pointer-events-none">
+                <span className="flex items-center justify-center w-full overflow-hidden text-xs text-white pointer-events-none">
                   {text}
                 </span>
               </div>
             );
-          }
-        )}
+          });
+        })()}
       </div>
     ),
-    [globalTrajectoryManagerState.trajectorySequence]
+    [trajSeq, state.context.currentTime]
   );
 
   return (
@@ -116,9 +148,7 @@ const Timeline = ({ className }: Props) => {
           </span>
           <span className="place-self-center translate-x-[1px]">/</span>
           <span className="place-self-start">
-            {globalTrajectoryManagerState.trajectorySequence
-              ?.duration()
-              .toFixed(2)}
+            {trajSeq?.duration().toFixed(2)}
           </span>
         </div>
       )}
@@ -129,7 +159,7 @@ const Timeline = ({ className }: Props) => {
               className={styles.slider}
               type="range"
               min="0"
-              max={globalTrajectoryManagerState.trajectorySequence?.duration()}
+              max={trajSeq?.duration()}
               value={state.context.currentTime}
               step="0.001"
               onChange={(evt) =>
