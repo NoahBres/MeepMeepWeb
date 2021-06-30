@@ -5,11 +5,36 @@ import React, {
   useReducer,
   useContext,
 } from "react";
-import { trajectory } from "roadrunnerjs";
+import { WaitSegment } from "../parser/trajectorysequence/SequenceSegment";
 import { TrajectorySequence } from "../parser/trajectorysequence/TrajectorySequence";
+
+const SEGMENT_COLOR_PROGRESSION = [
+  "#EF4444",
+  "#F97316",
+  "#F59E0B",
+  "#EAB308",
+  "#84CC16",
+  "#22C55E",
+  "#10B981",
+  "#14B8A6",
+  "#06B6D4",
+  "#0EA5E9",
+  "#3B82F6",
+  "#6366F1",
+  "#8B5CF6",
+  "#A855F7",
+  "#D946EF",
+  "#EC4899",
+  "#F43F5E",
+];
 
 export type GlobalTrajectoryState = {
   trajectorySequence: TrajectorySequence | null;
+  trajectorySequenceMeta: TrajectorySequenceMeta;
+};
+
+export type TrajectorySequenceMeta = {
+  segmentColors: string[];
 };
 
 type GlobalTrajectoryActions = {
@@ -22,16 +47,33 @@ const GlobalTrajectoryReducer = (
   action: GlobalTrajectoryActions
 ): GlobalTrajectoryState => {
   switch (action.type) {
-    case "setTrajectory":
+    case "setTrajectory": {
+      let count = 0;
+
+      const segmentColors = action.trajectorySequence.sequenceList.map((e) => {
+        if (e instanceof WaitSegment) return "#64748B";
+        return SEGMENT_COLOR_PROGRESSION[
+          count++ % SEGMENT_COLOR_PROGRESSION.length
+        ];
+      });
+
       return {
         ...state,
+        trajectorySequenceMeta: {
+          ...state.trajectorySequenceMeta,
+          segmentColors,
+        },
         trajectorySequence: action.trajectorySequence,
       };
+    }
   }
 };
 
 const defaultState: GlobalTrajectoryState = {
   trajectorySequence: null,
+  trajectorySequenceMeta: {
+    segmentColors: [],
+  },
 };
 
 const GlobalTrajectoryManagerState =
