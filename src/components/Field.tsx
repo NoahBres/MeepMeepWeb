@@ -8,14 +8,25 @@ import {
   GlobalTrajectoryState,
   useGlobalTrajectoryManagerState,
 } from "../state/GlobalTrajectoryManager";
-import { TrajectorySegment } from "../parser/trajectorysequence/SequenceSegment";
+import {
+  SequenceSegment,
+  TrajectorySegment,
+  TurnSegment,
+  WaitSegment,
+} from "../parser/trajectorysequence/SequenceSegment";
 import { TrajectorySequence } from "../parser/trajectorysequence/TrajectorySequence";
+import { useGlobalTimelineManager } from "../state/GlobalTimelineManager";
 
 const FIELD_WIDTH = 144;
 const FIELD_HEIGHT = 144;
 const TRAJECTORY_SAMPLE_RESOLUTION = 1.2;
 
 const Field = () => {
+  const [botDimen] = useState({ width: 18, height: 18 });
+  const [botPose, setBotPose] = useState<geometry.Pose2d>(
+    new geometry.Pose2d(0, 0, 0)
+  );
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestAnimationFrameRef = useRef<number>(0);
 
@@ -47,6 +58,8 @@ const Field = () => {
     globalTrajectoryManagerState
   );
 
+  const [state] = useGlobalTimelineManager();
+
   const [trajectorySVG, setTrajectorySVG] = useState<ReactNode>(null);
 
   useEffect(() => {
@@ -60,6 +73,15 @@ const Field = () => {
       )
     );
   }, [globalTrajectoryManagerState]);
+
+  useEffect(() => {
+    const time = state.context.currentTime;
+    const trajSeq = globalTrajectoryManagerState.trajectorySequence;
+
+    if (time !== -1 && trajSeq) {
+      setBotPose(getPoseInTrajectorySequence(time, trajSeq));
+    }
+  }, [state.context.currentTime]);
 
   useEffect(() => {
     const scale = () => {
@@ -132,6 +154,39 @@ const Field = () => {
             {trajectorySVG}
           </svg>
         </div>
+        {globalTrajectoryManagerState.trajectorySequence &&
+          (() => {
+            const coords = fieldCoordToScreenCoord(
+              botPose.vec(),
+              canvasWidthRef.current,
+              canvasHeightRef.current
+            );
+
+            return (
+              <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2">
+                <div
+                  className="grid bg-red-500 place-items-center bg-opacity-70"
+                  style={{
+                    width: `${scaleInchesToPixels(
+                      botDimen.width,
+                      canvasWidthRef.current,
+                      canvasHeightRef.current
+                    )}px`,
+                    height: `${scaleInchesToPixels(
+                      botDimen.height,
+                      canvasWidthRef.current,
+                      canvasHeightRef.current
+                    )}px`,
+                    transform: `translate(${coords.x}px, ${
+                      coords.y
+                    }px) rotate(${-botPose.heading}rad)`,
+                  }}
+                >
+                  <div className="w-5 h-0.5 translate-x-3 bg-purple-700"></div>
+                </div>
+              </div>
+            );
+          })()}
       </div>
     </div>
   );
@@ -159,6 +214,42 @@ function fieldCoordToScreenCoord(
     .plus(new geometry.Vector2d(FIELD_WIDTH / 2, FIELD_HEIGHT / 2))
     .times(Math.min(canvasWidth, canvasHeight))
     .div(FIELD_WIDTH);
+}
+
+function getPoseInTrajectorySequence(
+  time: number,
+  trajSeq: TrajectorySequence
+): geometry.Pose2d {
+  let segment: SequenceSegment | null = null;
+  let segmentOffsetTime = 0;
+
+  let currentTime = 0;
+
+  for (const seg of trajSeq.sequenceList) {
+    if (currentTime + seg.duration > time) {
+      segmentOffsetTime = time - currentTime;
+      segment = seg;
+
+      break;
+    } else {
+      currentTime += seg.duration;
+    }
+  }
+
+  if (segment) {
+    if (segment instanceof WaitSegment) return segment.startPose;
+    else if (segment instanceof TurnSegment)
+      return segment.startPose.copy(
+        segment.startPose.x,
+        segment.startPose.y,
+        segment.motionProfile.get(segmentOffsetTime).x
+      );
+    else if (segment instanceof TrajectorySegment)
+      return segment.trajectory.get(segmentOffsetTime);
+    else return trajSeq.end();
+  } else {
+    return new geometry.Pose2d(0, 0, 0);
+  }
 }
 
 function drawTrajectorySequence(
@@ -253,7 +344,7 @@ function buildSVGFromTrajectorySequence(
   console.log(globalTrajectory.trajectorySequence);
 
   const paths = globalTrajectory.trajectorySequence?.sequenceList.map(
-    (step) => {
+    (step, i) => {
       if (step instanceof TrajectorySegment) {
         const traj = step.trajectory;
         const displacementSamples = Math.floor(
@@ -281,7 +372,7 @@ function buildSVGFromTrajectorySequence(
           .join(" ");
 
         return (
-          <g>
+          <g key={`trajectory-path-segment-${id}-${i}`}>
             <path
               stroke="red"
               fill="none"
