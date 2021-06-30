@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { assign, createMachine, InterpreterFrom } from "xstate";
-import { useActor, useInterpret, useMachine } from "@xstate/react";
+import { useActor, useInterpret } from "@xstate/react";
 
 import { useGlobalTrajectoryManagerState } from "./GlobalTrajectoryManager";
 
@@ -112,26 +112,25 @@ const GlobalTimelineManagerContext = createContext(
 
 const GlobalTimelineStateManager = ({ children }: { children: ReactNode }) => {
   const timelineManagerService = useInterpret(timelineStateMachine);
-  const [state, send] = useActor(timelineManagerService);
+  const [, send] = useActor(timelineManagerService);
 
   const globalTrajectoryManagerState = useGlobalTrajectoryManagerState();
 
   const requestAnimationFrameRef = useRef(0);
   const previousTimeRef = useRef(-1);
 
-  function sliderProgressLoop(time: number) {
+  const sliderProgressLoop = (time: number) => {
     if (previousTimeRef.current !== -1) {
       const dt = time - previousTimeRef.current;
 
-      if (state.matches("playing"))
-        send({ type: "INCREMENT.TIME", deltaTime: dt * 0.001 });
+      send({ type: "INCREMENT.TIME", deltaTime: dt * 0.001 });
     }
 
     previousTimeRef.current = time;
 
     requestAnimationFrameRef.current =
       requestAnimationFrame(sliderProgressLoop);
-  }
+  };
 
   useEffect(() => {
     if (globalTrajectoryManagerState.trajectorySequence) {
@@ -151,8 +150,9 @@ const GlobalTimelineStateManager = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     requestAnimationFrameRef.current =
       requestAnimationFrame(sliderProgressLoop);
+
     return () => cancelAnimationFrame(requestAnimationFrameRef.current);
-  });
+  }, []);
 
   return (
     <GlobalTimelineManagerContext.Provider value={{ timelineManagerService }}>
