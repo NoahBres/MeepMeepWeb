@@ -1,0 +1,26 @@
+{
+  "version": "9",
+  "items": {
+    "4942b252ada3a5787f591d25ad30d355": {
+      "src": "/Users/noah/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.5.0-RC/381fba17fba4081fda231f04b9c01910aee93b6d/kotlin-stdlib-common-1.5.0-RC.jar"
+    },
+    "4561d96ef079af18e0a75a58f1fd9800": {
+      "src": "/Users/noah/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.5.0-RC/68441addaa4933278c8a59ea8b01d2a6a1f9320a/kotlin-stdlib-js-1.5.0-RC.jar",
+      "target": "kotlin/1.5.0-RC"
+    },
+    "337ff817e087aded273dfc9ba494baf4": {
+      "src": "/Users/noah/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-js-runner/1.5.0-RC/20ef83e15f8c2cde090f3bfd8c1eba72947f7ab8/kotlin-test-js-runner-1.5.0-RC.jar",
+      "target": "kotlin-test-js-runner/1.5.0-RC"
+    },
+    "6864a04fd4fb4aa1c8c83d245c35c53b": {
+      "src": "/Users/noah/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-js/1.5.0-RC/9fec20c092c97ac1625c3f52943171d71f043cb2/kotlin-test-js-1.5.0-RC.jar",
+      "target": "kotlin-test/1.5.0-RC"
+    },
+    "4db81c20f2b58bf997e327077de66f3e": {
+      "src": "/Users/noah/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-common/1.5.0-RC/32c16f7ea83bfb08b18f81062b44296e2b844e27/kotlin-test-common-1.5.0-RC.jar"
+    },
+    "dccbca1afc3d7f1c5f0c416673834e57": {
+      "src": "/Users/noah/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-annotations-common/1.5.0-RC/4169a5565ce7f0919680e0c922a7328d22a5098b/kotlin-test-annotations-common-1.5.0-RC.jar"
+    }
+  }
+}

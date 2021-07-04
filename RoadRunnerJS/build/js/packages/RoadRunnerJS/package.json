@@ -1,0 +1,22 @@
+{
+  "name": "roadrunnerjs",
+  "version": "1.0.0-SNAPSHOT",
+  "main": "kotlin/roadrunnerjs.js",
+  "devDependencies": {
+    "dukat": "0.5.8-rc.4",
+    "webpack": "5.27.1",
+    "webpack-cli": "4.5.0",
+    "format-util": "1.0.5",
+    "source-map-loader": "2.0.1",
+    "webpack-dev-server": "3.11.2"
+  },
+  "dependencies": {
+    "mathjs": "9.3.2",
+    "kotlin": "file:/Users/noah/Dev/MeepMeepWeb/RoadRunnerJS/build/js/packages_imported/kotlin/1.5.0-RC",
+    "kotlin-test-js-runner": "file:/Users/noah/Dev/MeepMeepWeb/RoadRunnerJS/build/js/packages_imported/kotlin-test-js-runner/1.5.0-RC",
+    "kotlin-test": "file:/Users/noah/Dev/MeepMeepWeb/RoadRunnerJS/build/js/packages_imported/kotlin-test/1.5.0-RC"
+  },
+  "peerDependencies": {},
+  "optionalDependencies": {},
+  "bundledDependencies": []
+}

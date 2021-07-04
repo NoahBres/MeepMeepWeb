@@ -1,0 +1,7 @@
+builtins_platform=JS
+unique_name=me.noah\:RoadRunnerJS_test
+compiler_version=1.5.0-RC
+depends=me.noah\:RoadRunnerJS kotlin-test kotlin
+abi_version=1.4.2
+metadata_version=1.4.1
+ir_version=1.0.0

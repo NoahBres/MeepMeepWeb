@@ -1,0 +1,15 @@
+{
+  "name": "RoadRunnerJS",
+  "version": "1.0-SNAPSHOT",
+  "private": true,
+  "workspaces": [
+    "packages/roadrunnerjs",
+    "packages/roadrunnerjs-test"
+  ],
+  "resolutions": {},
+  "devDependencies": {},
+  "dependencies": {},
+  "peerDependencies": {},
+  "optionalDependencies": {},
+  "bundledDependencies": []
+}
