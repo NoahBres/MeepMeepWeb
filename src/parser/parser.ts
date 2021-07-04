@@ -21,7 +21,7 @@ import {
   TranslationMeta,
 } from "./TranslationMeta";
 
-import { geometry, trajectory } from "roadrunnerjs";
+import * as rr from "roadrunnerjs";
 
 import { isNumber } from "../util";
 import { TrajectorySequence } from "./trajectorysequence/TrajectorySequence";
@@ -281,8 +281,8 @@ type GetNewExpressionValueReturn =
       success: true;
       warnings: string[];
       payload:
-        | { type: "Pose2d"; value: geometry.Pose2d }
-        | { type: "Vector2d"; value: geometry.Vector2d };
+        | { type: "Pose2d"; value: rr.geometry.Pose2d }
+        | { type: "Vector2d"; value: rr.geometry.Vector2d };
     }
   | ReturnType<typeof StandardResultError>;
 function getNewExpressionValue(
@@ -305,7 +305,7 @@ function getNewExpressionValue(
             warnings: [],
             payload: {
               type: "Pose2d",
-              value: new geometry.Pose2d(
+              value: new rr.geometry.Pose2d(
                 evalParams.paramValues[0],
                 evalParams.paramValues[1],
                 evalParams.paramValues[2]
@@ -330,7 +330,7 @@ function getNewExpressionValue(
             warnings: [],
             payload: {
               type: "Vector2d",
-              value: new geometry.Vector2d(
+              value: new rr.geometry.Vector2d(
                 evalParams.paramValues[0],
                 evalParams.paramValues[1]
               ),
@@ -632,24 +632,24 @@ function getCallExpressionValue(
                 if (member.object.name === "SampleMecanumDrive") {
                   switch (member.property.name) {
                     case "getVelocityConstraint":
-                      payloadVal = new trajectory.constraints.MinVelocityConstraint(
-                        [
-                          new trajectory.constraints.AngularVelocityConstraint(
+                      payloadVal =
+                        new rr.trajectory.constraints.MinVelocityConstraint([
+                          new rr.trajectory.constraints.AngularVelocityConstraint(
                             validParam.verifyParameters.paramValues[1]
                           ),
-                          new trajectory.constraints.MecanumVelocityConstraint(
+                          new rr.trajectory.constraints.MecanumVelocityConstraint(
                             validParam.verifyParameters.paramValues[0],
                             validParam.verifyParameters.paramValues[2],
                             validParam.verifyParameters.paramValues[2],
                             1
                           ),
-                        ]
-                      );
+                        ]);
                       break;
                     case "getAccelerationConstraint":
-                      payloadVal = new trajectory.constraints.ProfileAccelerationConstraint(
-                        validParam.verifyParameters.paramValues[0]
-                      );
+                      payloadVal =
+                        new rr.trajectory.constraints.ProfileAccelerationConstraint(
+                          validParam.verifyParameters.paramValues[0]
+                        );
                       break;
                   }
                 }

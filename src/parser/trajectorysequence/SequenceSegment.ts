@@ -1,17 +1,16 @@
-import { geometry, trajectory, profile, util } from "roadrunnerjs";
-
+import * as rr from "roadrunnerjs";
 export class SequenceSegment {
   readonly duration: number;
 
-  readonly startPose: geometry.Pose2d;
-  readonly endPose: geometry.Pose2d;
-  readonly markers: trajectory.TrajectoryMarker[];
+  readonly startPose: rr.geometry.Pose2d;
+  readonly endPose: rr.geometry.Pose2d;
+  readonly markers: rr.trajectory.TrajectoryMarker[];
 
   constructor(
     duration: number,
-    startPose: geometry.Pose2d,
-    endPose: geometry.Pose2d,
-    markers: trajectory.TrajectoryMarker[]
+    startPose: rr.geometry.Pose2d,
+    endPose: rr.geometry.Pose2d,
+    markers: rr.trajectory.TrajectoryMarker[]
   ) {
     this.duration = duration;
     this.startPose = startPose;
@@ -21,9 +20,9 @@ export class SequenceSegment {
 }
 
 export class TrajectorySegment extends SequenceSegment {
-  readonly trajectory: trajectory.Trajectory;
+  readonly trajectory: rr.trajectory.Trajectory;
 
-  constructor(trajectory: trajectory.Trajectory) {
+  constructor(trajectory: rr.trajectory.Trajectory) {
     super(trajectory.duration(), trajectory.start(), trajectory.end(), []);
     this.trajectory = trajectory;
   }
@@ -31,21 +30,21 @@ export class TrajectorySegment extends SequenceSegment {
 
 export class TurnSegment extends SequenceSegment {
   readonly totalRotation: number;
-  readonly motionProfile: profile.MotionProfile;
+  readonly motionProfile: rr.profile.MotionProfile;
 
   constructor(
-    startPose: geometry.Pose2d,
+    startPose: rr.geometry.Pose2d,
     totalRotation: number,
-    motionProfile: profile.MotionProfile,
-    markers: trajectory.TrajectoryMarker[]
+    motionProfile: rr.profile.MotionProfile,
+    markers: rr.trajectory.TrajectoryMarker[]
   ) {
     super(
       motionProfile.duration(),
       startPose,
-      new geometry.Pose2d(
+      new rr.geometry.Pose2d(
         startPose.x,
         startPose.y,
-        util.Angle.norm(startPose.heading + totalRotation)
+        rr.util.Angle.norm(startPose.heading + totalRotation)
       ),
       markers
     );
@@ -57,9 +56,9 @@ export class TurnSegment extends SequenceSegment {
 
 export class WaitSegment extends SequenceSegment {
   constructor(
-    pose: geometry.Pose2d,
+    pose: rr.geometry.Pose2d,
     seconds: number,
-    markers: trajectory.TrajectoryMarker[]
+    markers: rr.trajectory.TrajectoryMarker[]
   ) {
     super(seconds, pose, pose, markers);
   }

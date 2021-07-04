@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { geometry } from "roadrunnerjs";
+import * as rr from "roadrunnerjs";
 
 import useResizeObserver from "use-resize-observer";
 import { v4 as uuid } from "uuid";
@@ -32,8 +32,8 @@ const TRAJECTORY_SAMPLE_RESOLUTION = 0.1;
 
 const Field = () => {
   const [botDimen] = useState({ width: 18, height: 18 });
-  const [botPose, setBotPose] = useState<geometry.Pose2d>(
-    new geometry.Pose2d(0, 0, 0)
+  const [botPose, setBotPose] = useState<rr.geometry.Pose2d>(
+    new rr.geometry.Pose2d(0, 0, 0)
   );
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -245,14 +245,14 @@ function scaleInchesToPixels(
 }
 
 function fieldCoordToScreenCoord(
-  vector: geometry.Vector2d,
+  vector: rr.geometry.Vector2d,
   canvasWidth: number,
   canvasHeight: number
 ) {
-  const mirrorVec = new geometry.Vector2d(vector.x, -vector.y);
+  const mirrorVec = new rr.geometry.Vector2d(vector.x, -vector.y);
 
   return mirrorVec
-    .plus(new geometry.Vector2d(FIELD_WIDTH / 2, FIELD_HEIGHT / 2))
+    .plus(new rr.geometry.Vector2d(FIELD_WIDTH / 2, FIELD_HEIGHT / 2))
     .times(Math.min(canvasWidth, canvasHeight))
     .div(FIELD_WIDTH);
 }
@@ -260,7 +260,7 @@ function fieldCoordToScreenCoord(
 function getPoseInTrajectorySequence(
   time: number,
   trajSeq: TrajectorySequence
-): geometry.Pose2d {
+): rr.geometry.Pose2d {
   let segment: SequenceSegment | null = null;
   let segmentOffsetTime = 0;
 
@@ -289,7 +289,7 @@ function getPoseInTrajectorySequence(
       return segment.trajectory.get(segmentOffsetTime);
     else return trajSeq.end();
   } else {
-    return new geometry.Pose2d(0, 0, 0);
+    return new rr.geometry.Pose2d(0, 0, 0);
   }
 }
 
@@ -400,7 +400,7 @@ function buildSVGFromTrajectorySequence(
         const pathString = poses
           .slice(1)
           .map((pose, i) => {
-            const coord = new geometry.Pose2d(pose.x, -pose.y, pose.heading);
+            const coord = new rr.geometry.Pose2d(pose.x, -pose.y, pose.heading);
 
             if (i === 0) {
               return `M ${coord.x},${coord.y}`;

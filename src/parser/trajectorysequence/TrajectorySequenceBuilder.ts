@@ -1,4 +1,4 @@
-import { trajectory, geometry, util, profile, path } from "roadrunnerjs";
+import * as rr from "roadrunnerjs";
 import {
   SequenceSegment,
   TrajectorySegment,
@@ -13,11 +13,11 @@ export class TrajectorySequenceBuilder {
 
   private readonly resolution = 0.25;
 
-  private readonly baseVelConstraint: trajectory.constraints.TrajectoryVelocityConstraint;
-  private readonly baseAccelConstraint: trajectory.constraints.TrajectoryAccelerationConstraint;
+  private readonly baseVelConstraint: rr.trajectory.constraints.TrajectoryVelocityConstraint;
+  private readonly baseAccelConstraint: rr.trajectory.constraints.TrajectoryAccelerationConstraint;
 
-  private currentVelConstraint: trajectory.constraints.TrajectoryVelocityConstraint;
-  private currentAccelConstraint: trajectory.constraints.TrajectoryAccelerationConstraint;
+  private currentVelConstraint: rr.trajectory.constraints.TrajectoryVelocityConstraint;
+  private currentAccelConstraint: rr.trajectory.constraints.TrajectoryAccelerationConstraint;
 
   private readonly baseTurnConstraintMaxAngVel: number;
   private readonly baseTurnConstraintMaxAngAccel: number;
@@ -27,18 +27,18 @@ export class TrajectorySequenceBuilder {
 
   private sequenceSegments: SequenceSegment[];
 
-  private readonly temporalMarkers: trajectory.TemporalMarker[];
-  private readonly displacementMarkers: trajectory.DisplacementMarker[];
-  private readonly spatialMarkers: trajectory.SpatialMarker[];
+  private readonly temporalMarkers: rr.trajectory.TemporalMarker[];
+  private readonly displacementMarkers: rr.trajectory.DisplacementMarker[];
+  private readonly spatialMarkers: rr.trajectory.SpatialMarker[];
 
-  private lastPose: geometry.Pose2d;
+  private lastPose: rr.geometry.Pose2d;
 
   private tangentOffset: number;
 
   private setAbsoluteTangent: boolean;
   private absoluteTangent: number;
 
-  private currentTrajectoryBuilder: trajectory.TrajectoryBuilder | null;
+  private currentTrajectoryBuilder: rr.trajectory.TrajectoryBuilder | null;
 
   private currentDuration: number;
   private currentDisplacement: number;
@@ -47,10 +47,10 @@ export class TrajectorySequenceBuilder {
   private lastDisplacementTraj: number;
 
   constructor(
-    startPose: geometry.Pose2d,
+    startPose: rr.geometry.Pose2d,
     startTangent: number | null,
-    baseVelConstraint: trajectory.constraints.TrajectoryVelocityConstraint,
-    baseAccelConstraint: trajectory.constraints.TrajectoryAccelerationConstraint,
+    baseVelConstraint: rr.trajectory.constraints.TrajectoryVelocityConstraint,
+    baseAccelConstraint: rr.trajectory.constraints.TrajectoryAccelerationConstraint,
     baseTurnConstraintMaxAngVel: number,
     baseTurnConstraintMaxAngAccel: number
   ) {
@@ -88,7 +88,7 @@ export class TrajectorySequenceBuilder {
     this.lastDisplacementTraj = 0.0;
   }
 
-  lineTo(endPosition: geometry.Vector2d): TrajectorySequenceBuilder {
+  lineTo(endPosition: rr.geometry.Vector2d): TrajectorySequenceBuilder {
     return this.addPath(() =>
       this.currentTrajectoryBuilder?.lineTo(
         endPosition,
@@ -99,7 +99,7 @@ export class TrajectorySequenceBuilder {
   }
 
   lineToConstantHeading(
-    endPosition: geometry.Vector2d
+    endPosition: rr.geometry.Vector2d
   ): TrajectorySequenceBuilder {
     return this.addPath(() => {
       this.currentTrajectoryBuilder?.lineToConstantHeading(
@@ -110,7 +110,7 @@ export class TrajectorySequenceBuilder {
     });
   }
 
-  lineToLinearHeading(endPose: geometry.Pose2d): TrajectorySequenceBuilder {
+  lineToLinearHeading(endPose: rr.geometry.Pose2d): TrajectorySequenceBuilder {
     return this.addPath(() => {
       this.currentTrajectoryBuilder?.lineToLinearHeading(
         endPose,
@@ -120,7 +120,7 @@ export class TrajectorySequenceBuilder {
     });
   }
 
-  lineToSplineHeading(endPose: geometry.Pose2d): TrajectorySequenceBuilder {
+  lineToSplineHeading(endPose: rr.geometry.Pose2d): TrajectorySequenceBuilder {
     return this.addPath(() => {
       this.currentTrajectoryBuilder?.lineToSplineHeading(
         endPose,
@@ -130,7 +130,7 @@ export class TrajectorySequenceBuilder {
     });
   }
 
-  strafeTo(endPosition: geometry.Vector2d): TrajectorySequenceBuilder {
+  strafeTo(endPosition: rr.geometry.Vector2d): TrajectorySequenceBuilder {
     return this.addPath(() => {
       this.currentTrajectoryBuilder?.strafeTo(
         endPosition,
@@ -181,9 +181,11 @@ export class TrajectorySequenceBuilder {
   }
 
   splineTo(
-    endPosition: geometry.Vector2d,
+    endPosition: rr.geometry.Vector2d,
     endHeading: number
   ): TrajectorySequenceBuilder {
+    console.log(this.lastPose, endPosition);
+
     return this.addPath(() => {
       this.currentTrajectoryBuilder?.splineTo(
         endPosition,
@@ -195,7 +197,7 @@ export class TrajectorySequenceBuilder {
   }
 
   splineToConstantHeading(
-    endPosition: geometry.Vector2d,
+    endPosition: rr.geometry.Vector2d,
     endHeading: number
   ): TrajectorySequenceBuilder {
     return this.addPath(() => {
@@ -209,7 +211,7 @@ export class TrajectorySequenceBuilder {
   }
 
   splineToLinearHeading(
-    endPose: geometry.Pose2d,
+    endPose: rr.geometry.Pose2d,
     endHeading: number
   ): TrajectorySequenceBuilder {
     return this.addPath(() => {
@@ -223,7 +225,7 @@ export class TrajectorySequenceBuilder {
   }
 
   splineToSplineHeading(
-    endPose: geometry.Pose2d,
+    endPose: rr.geometry.Pose2d,
     endHeading: number
   ): TrajectorySequenceBuilder {
     return this.addPath(() => {
@@ -244,6 +246,7 @@ export class TrajectorySequenceBuilder {
       callback();
     } catch (e) {
       if (e.name === "PathContinuityViolationException") {
+        console.log("continuity excpetion");
         this.newPath();
         callback();
       } else {
@@ -251,7 +254,8 @@ export class TrajectorySequenceBuilder {
       }
     }
 
-    const builtTraj: trajectory.Trajectory = this.currentTrajectoryBuilder.build();
+    const builtTraj: rr.trajectory.Trajectory =
+      this.currentTrajectoryBuilder.build();
 
     const durationDifference = builtTraj.duration() - this.lastDurationTraj;
     const displacementDifference =
@@ -292,8 +296,8 @@ export class TrajectorySequenceBuilder {
   }
 
   setConstraints(
-    velConstraint: trajectory.constraints.TrajectoryVelocityConstraint,
-    accelConstraint: trajectory.constraints.TrajectoryAccelerationConstraint
+    velConstraint: rr.trajectory.constraints.TrajectoryVelocityConstraint,
+    accelConstraint: rr.trajectory.constraints.TrajectoryAccelerationConstraint
   ): TrajectorySequenceBuilder {
     this.currentVelConstraint = velConstraint;
     this.currentAccelConstraint = accelConstraint;
@@ -309,9 +313,8 @@ export class TrajectorySequenceBuilder {
   }
 
   setVelConstraint(
-    velConstraint: trajectory.constraints.TrajectoryVelocityConstraint
+    velConstraint: rr.trajectory.constraints.TrajectoryVelocityConstraint
   ): TrajectorySequenceBuilder {
-    console.log(velConstraint);
     this.currentVelConstraint = velConstraint;
 
     return this;
@@ -324,7 +327,7 @@ export class TrajectorySequenceBuilder {
   }
 
   setAccelConstraint(
-    accelConstraint: trajectory.constraints.TrajectoryAccelerationConstraint
+    accelConstraint: rr.trajectory.constraints.TrajectoryAccelerationConstraint
   ): TrajectorySequenceBuilder {
     this.currentAccelConstraint = accelConstraint;
 
@@ -361,23 +364,29 @@ export class TrajectorySequenceBuilder {
   ): TrajectorySequenceBuilder {
     this.pushPath();
 
-    const turnProfile = profile.MotionProfileGenerator.generateSimpleMotionProfile(
-      new profile.MotionState(this.lastPose.heading, 0.0, 0.0, 0.0),
-      new profile.MotionState(this.lastPose.heading + angle, 0.0, 0.0, 0.0),
-      maxAngVel,
-      maxAngAccel,
-      0,
-      false
-    );
+    const turnProfile =
+      rr.profile.MotionProfileGenerator.generateSimpleMotionProfile(
+        new rr.profile.MotionState(this.lastPose.heading, 0.0, 0.0, 0.0),
+        new rr.profile.MotionState(
+          this.lastPose.heading + angle,
+          0.0,
+          0.0,
+          0.0
+        ),
+        maxAngVel,
+        maxAngAccel,
+        0,
+        false
+      );
 
     this.sequenceSegments.push(
       new TurnSegment(this.lastPose, angle, turnProfile, [])
     );
 
-    this.lastPose = new geometry.Pose2d(
+    this.lastPose = new rr.geometry.Pose2d(
       this.lastPose.x,
       this.lastPose.y,
-      util.Angle.norm(this.lastPose.heading + angle)
+      rr.util.Angle.norm(this.lastPose.heading + angle)
     );
 
     this.currentDuration += turnProfile.duration();
@@ -393,7 +402,7 @@ export class TrajectorySequenceBuilder {
     return this;
   }
 
-  addTrajectory(trajectory: trajectory.Trajectory) {
+  addTrajectory(trajectory: rr.trajectory.Trajectory) {
     this.pushPath();
 
     this.sequenceSegments.push(new TrajectorySegment(trajectory));
@@ -402,7 +411,8 @@ export class TrajectorySequenceBuilder {
 
   private pushPath() {
     if (this.currentTrajectoryBuilder !== null) {
-      const builtTraj: trajectory.Trajectory = this.currentTrajectoryBuilder.build();
+      const builtTraj: rr.trajectory.Trajectory =
+        this.currentTrajectoryBuilder.build();
       this.sequenceSegments.push(new TrajectorySegment(builtTraj));
     }
 
@@ -417,16 +427,16 @@ export class TrajectorySequenceBuilder {
 
     const tangent = this.setAbsoluteTangent
       ? this.absoluteTangent
-      : util.Angle.norm(this.lastPose.heading + this.tangentOffset);
+      : rr.util.Angle.norm(this.lastPose.heading + this.tangentOffset);
 
-    this.currentTrajectoryBuilder = new trajectory.TrajectoryBuilder(
+    this.currentTrajectoryBuilder = new rr.trajectory.TrajectoryBuilder(
       this.lastPose,
       tangent,
       null,
       null,
       this.currentVelConstraint,
       this.currentAccelConstraint,
-      new profile.MotionState(0, 0, 0, 0),
+      new rr.profile.MotionState(0, 0, 0, 0),
       this.resolution
     );
   }
@@ -435,12 +445,13 @@ export class TrajectorySequenceBuilder {
   build() {
     this.pushPath();
 
-    const globalMarkers: trajectory.TrajectoryMarker[] = this.convertMarkersToGlobal(
-      this.sequenceSegments,
-      this.temporalMarkers,
-      this.displacementMarkers,
-      this.spatialMarkers
-    );
+    const globalMarkers: rr.trajectory.TrajectoryMarker[] =
+      this.convertMarkersToGlobal(
+        this.sequenceSegments,
+        this.temporalMarkers,
+        this.displacementMarkers,
+        this.spatialMarkers
+      );
 
     return new TrajectorySequence(
       this.projectGlobalMarkersToLocalSegments(
@@ -452,21 +463,21 @@ export class TrajectorySequenceBuilder {
 
   convertMarkersToGlobal(
     sequenceSegments: SequenceSegment[],
-    temporalMarkers: trajectory.TemporalMarker[],
-    displacementMarkers: trajectory.DisplacementMarker[],
-    spatialMarkers: trajectory.SpatialMarker[]
-  ): trajectory.TrajectoryMarker[] {
-    const trajectoryMarkers: trajectory.TrajectoryMarker[] = [
+    temporalMarkers: rr.trajectory.TemporalMarker[],
+    displacementMarkers: rr.trajectory.DisplacementMarker[],
+    spatialMarkers: rr.trajectory.SpatialMarker[]
+  ): rr.trajectory.TrajectoryMarker[] {
+    const trajectoryMarkers: rr.trajectory.TrajectoryMarker[] = [
       ...temporalMarkers.map(
         (e) =>
-          new trajectory.TrajectoryMarker(
+          new rr.trajectory.TrajectoryMarker(
             e.producer.produce(this.currentDuration),
             e.callback
           )
       ),
       ...displacementMarkers.map(
         (e) =>
-          new trajectory.TrajectoryMarker(
+          new rr.trajectory.TrajectoryMarker(
             this.displacementToTime(
               this.sequenceSegments,
               e.producer.produce(this.currentDisplacement)
@@ -476,7 +487,7 @@ export class TrajectorySequenceBuilder {
       ),
       ...spatialMarkers.map(
         (e) =>
-          new trajectory.TrajectoryMarker(
+          new rr.trajectory.TrajectoryMarker(
             this.pointToTime(this.sequenceSegments, e.point),
             e.callback
           )
@@ -487,7 +498,7 @@ export class TrajectorySequenceBuilder {
   }
 
   private projectGlobalMarkersToLocalSegments(
-    markers: trajectory.TrajectoryMarker[],
+    markers: rr.trajectory.TrajectoryMarker[],
     sequenceSegments: SequenceSegment[]
   ): SequenceSegment[] {
     if (sequenceSegments.length === 0) return [];
@@ -522,9 +533,9 @@ export class TrajectorySequenceBuilder {
       let newSegment: SequenceSegment | null = null;
 
       if (segment instanceof WaitSegment) {
-        const newMarkers: trajectory.TrajectoryMarker[] = segment.markers;
+        const newMarkers: rr.trajectory.TrajectoryMarker[] = segment.markers;
         newMarkers.push(
-          new trajectory.TrajectoryMarker(segmentOffsetTime, marker.callback)
+          new rr.trajectory.TrajectoryMarker(segmentOffsetTime, marker.callback)
         );
 
         newSegment = new WaitSegment(
@@ -533,9 +544,9 @@ export class TrajectorySequenceBuilder {
           segment.markers
         );
       } else if (segment instanceof TurnSegment) {
-        const newMarkers: trajectory.TrajectoryMarker[] = segment.markers;
+        const newMarkers: rr.trajectory.TrajectoryMarker[] = segment.markers;
         newMarkers.push(
-          new trajectory.TrajectoryMarker(segmentOffsetTime, marker.callback)
+          new rr.trajectory.TrajectoryMarker(segmentOffsetTime, marker.callback)
         );
 
         newSegment = new TurnSegment(
@@ -545,14 +556,14 @@ export class TrajectorySequenceBuilder {
           segment.markers
         );
       } else if (segment instanceof TrajectorySegment) {
-        const newMarkers: trajectory.TrajectoryMarker[] =
+        const newMarkers: rr.trajectory.TrajectoryMarker[] =
           segment.trajectory.markers;
         newMarkers.push(
-          new trajectory.TrajectoryMarker(segmentOffsetTime, marker.callback)
+          new rr.trajectory.TrajectoryMarker(segmentOffsetTime, marker.callback)
         );
 
         newSegment = new TrajectorySegment(
-          new trajectory.Trajectory(
+          new rr.trajectory.Trajectory(
             segment.trajectory.path,
             segment.trajectory.profile,
             newMarkers
@@ -569,7 +580,7 @@ export class TrajectorySequenceBuilder {
   // // Taken from Road Runner's TrajectoryGenerator.displacementToTime() since it's private
   // // note: this assumes that the profile position is monotonic increasing
   private motionProfileDisplacementToTime(
-    profile: profile.MotionProfile,
+    profile: rr.profile.MotionProfile,
     s: number
   ) {
     let tLo = 0.0;
@@ -615,7 +626,7 @@ export class TrajectorySequenceBuilder {
 
   private pointToTime(
     sequenceSegments: SequenceSegment[],
-    point: geometry.Vector2d
+    point: rr.geometry.Vector2d
   ) {
     type ComparingPoints = {
       distanceToPoint: number;
