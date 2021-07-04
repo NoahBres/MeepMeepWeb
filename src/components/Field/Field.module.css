@@ -1,12 +1,12 @@
-.fieldSvgPath {
+.fieldSvgTraj {
   @apply opacity-40;
 }
 
-.fieldSvgPath.active {
+.fieldSvgTraj.active {
   @apply opacity-100;
 }
 
-.fieldSvgPath .mainPath {
+.fieldSvgTraj .mainPath {
   opacity: 1;
 
   stroke-linecap: round;
@@ -18,16 +18,16 @@
   @apply transition-all;
 }
 
-.fieldSvgPath.active .mainPath {
+.fieldSvgTraj.active .mainPath {
   stroke-dasharray: none;
   stroke-width: 1;
 }
 
-.fieldSvgPath:hover {
+.fieldSvgTraj:hover {
   opacity: 1;
 }
 
-.fieldSvgPath .outline {
+.fieldSvgTraj .outline {
   stroke-width: 3;
   stroke-dasharray: none;
   stroke-linecap: round;
@@ -37,6 +37,42 @@
   @apply transition-opacity;
 }
 
-.fieldSvgPath:hover .outline {
+.fieldSvgTraj:hover .outline {
   opacity: 0.3;
+}
+
+.fieldSvgWait {
+  /* stroke: pink; */
+  @apply text-gray-500;
+  @apply opacity-70;
+  @apply fill-current;
+}
+
+.fieldSvgTurn {
+  opacity: 0.3;
+
+  @apply transition-opacity;
+}
+
+.fieldSvgTurn.active {
+  opacity: 1;
+}
+
+.fieldSvgTurn .arc {
+  fill: none;
+  stroke-width: 0.5;
+
+  @apply text-purple-500;
+  @apply stroke-current;
+
+  stroke-linecap: round;
+}
+
+.fieldSvgTurn .arrowHead {
+  @apply text-purple-500;
+  @apply stroke-current;
+  @apply fill-current;
+
+  /* stroke-width: 0.5; */
+  stroke: none;
 }

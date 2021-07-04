@@ -24,6 +24,7 @@ import {
 } from "../../parser/trajectorysequence/SequenceSegment";
 import { TrajectorySequence } from "../../parser/trajectorysequence/TrajectorySequence";
 import { useGlobalTimelineManager } from "../../state/GlobalTimelineManager";
+import { toRadians } from "../../util";
 
 const FIELD_WIDTH = 144;
 const FIELD_HEIGHT = 144;
@@ -117,6 +118,10 @@ const Field = () => {
   }, [state.context.currentTime]);
 
   useEffect(() => {
+    console.log(trajectorySVGRefs.current);
+  }, [trajectorySVGRefs.current]);
+
+  useEffect(() => {
     const scale = () => {
       if (canvasRef.current) {
         scaleCanvas(
@@ -183,7 +188,9 @@ const Field = () => {
             xmlnsXlink="http://www.w3.org/1999/xlink"
             width={parentWidth}
             height={parentHeight}
-            viewBox="-72 -72 144 144"
+            viewBox={`${0 - FIELD_WIDTH / 2} ${
+              0 - FIELD_HEIGHT / 2
+            } ${FIELD_WIDTH} ${FIELD_HEIGHT}`}
           >
             {trajectorySVG}
           </svg>
@@ -406,7 +413,7 @@ function buildSVGFromTrajectorySequence(
         return (
           <g
             key={`trajectory-path-segment-${id}-${i}`}
-            className={styles.fieldSvgPath}
+            className={styles.fieldSvgTraj}
             ref={(el) => {
               if (el && refList.current) refList.current[i] = el;
             }}
@@ -426,6 +433,101 @@ function buildSVGFromTrajectorySequence(
               d={pathString}
               shapeRendering="auto"
               // shapeRendering="geometricPrecision"
+            />
+          </g>
+        );
+      } else if (step instanceof TurnSegment) {
+        const radius = 3;
+        const arrowSweep = toRadians(30);
+        const arrowAdjustment = toRadians(-15);
+        const arrowLength = 1.5;
+
+        const arrowArcEndAdjustment = toRadians(-20);
+
+        const arcStart = {
+          x: step.startPose.x + Math.cos(step.startPose.heading) * radius,
+          y: step.startPose.y + Math.sin(step.startPose.heading) * radius,
+        };
+
+        const arcEnd = {
+          x: step.endPose.x + Math.cos(step.endPose.heading) * radius,
+          y: step.endPose.y + Math.sin(step.endPose.heading) * radius,
+        };
+
+        const arcEndAdjusted = {
+          x:
+            step.endPose.x +
+            Math.cos(step.endPose.heading + arrowArcEndAdjustment) * radius,
+          y:
+            step.endPose.y +
+            Math.sin(step.endPose.heading + arrowArcEndAdjustment) * radius,
+        };
+
+        const arrowLine1 = {
+          x:
+            arcEnd.x +
+            Math.cos(
+              step.endPose.heading - Math.PI / 2 - arrowSweep + arrowAdjustment
+            ) *
+              arrowLength,
+          y:
+            arcEnd.y +
+            Math.sin(
+              step.endPose.heading - Math.PI / 2 - arrowSweep + arrowAdjustment
+            ) *
+              arrowLength,
+        };
+
+        const arrowLine2 = {
+          x:
+            arcEnd.x +
+            Math.cos(
+              step.endPose.heading - Math.PI / 2 + arrowSweep + arrowAdjustment
+            ) *
+              arrowLength,
+          y:
+            arcEnd.y +
+            Math.sin(
+              step.endPose.heading - Math.PI / 2 + arrowSweep + arrowAdjustment
+            ) *
+              arrowLength,
+        };
+
+        return (
+          <g
+            key={`trajectory-path-segment-${id}-${i}`}
+            className={styles.fieldSvgTurn}
+            ref={(el) => {
+              if (el && refList.current) refList.current[i] = el;
+            }}
+          >
+            <path
+              d={`M ${arcStart.x} ${-arcStart.y} A ${radius} ${radius} 0 0 0 ${
+                arcEndAdjusted.x
+              } ${-arcEndAdjusted.y}`}
+              className={styles.arc}
+            />
+            <path
+              className={styles.arrowHead}
+              d={`M ${arrowLine1.x} ${-arrowLine1.y} L ${
+                arcEnd.x
+              } ${-arcEnd.y} L ${arrowLine2.x} ${-arrowLine2.y}`}
+            />
+          </g>
+        );
+      } else if (step instanceof WaitSegment) {
+        return (
+          <g
+            key={`trajectory-path-segment-${id}-${i}`}
+            ref={(el) => {
+              if (el && refList.current) refList.current[i] = el;
+            }}
+          >
+            <circle
+              cx={step.startPose.x}
+              cy={-step.startPose.y}
+              r={0.75}
+              className={styles.fieldSvgWait}
             />
           </g>
         );
