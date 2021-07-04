@@ -14,7 +14,7 @@ import {
 import { AbsoluteDraggableProvider } from "./absolute-draggable";
 import useResizeObserver from "use-resize-observer";
 import { GlobalTrajectoryManager } from "./state/GlobalTrajectoryManager";
-import { Field } from "./components/Field";
+import { Field } from "./components/Field/Field";
 import { Timeline } from "./components/Timeline/Timeline";
 import { GlobalTimelineStateManager } from "./state/GlobalTimelineManager";
 

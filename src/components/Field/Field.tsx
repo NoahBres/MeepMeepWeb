@@ -1,25 +1,33 @@
-import React, { ReactNode, useEffect, useRef, useState } from "react";
+import React, {
+  ReactNode,
+  RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { geometry } from "roadrunnerjs";
 
 import useResizeObserver from "use-resize-observer";
 import { v4 as uuid } from "uuid";
 
+import styles from "./Field.module.css";
+
 import {
   GlobalTrajectoryState,
   useGlobalTrajectoryManagerState,
-} from "../state/GlobalTrajectoryManager";
+} from "../../state/GlobalTrajectoryManager";
 import {
   SequenceSegment,
   TrajectorySegment,
   TurnSegment,
   WaitSegment,
-} from "../parser/trajectorysequence/SequenceSegment";
-import { TrajectorySequence } from "../parser/trajectorysequence/TrajectorySequence";
-import { useGlobalTimelineManager } from "../state/GlobalTimelineManager";
+} from "../../parser/trajectorysequence/SequenceSegment";
+import { TrajectorySequence } from "../../parser/trajectorysequence/TrajectorySequence";
+import { useGlobalTimelineManager } from "../../state/GlobalTimelineManager";
 
 const FIELD_WIDTH = 144;
 const FIELD_HEIGHT = 144;
-const TRAJECTORY_SAMPLE_RESOLUTION = 1.2;
+const TRAJECTORY_SAMPLE_RESOLUTION = 0.1;
 
 const Field = () => {
   const [botDimen] = useState({ width: 18, height: 18 });
@@ -61,14 +69,15 @@ const Field = () => {
   const [state] = useGlobalTimelineManager();
 
   const [trajectorySVG, setTrajectorySVG] = useState<ReactNode>(null);
+  const trajectorySVGRefs = useRef<SVGGElement[]>([]);
 
   useEffect(() => {
     trajectoryManagerStateRef.current = globalTrajectoryManagerState;
+
     setTrajectorySVG(
       buildSVGFromTrajectorySequence(
-        globalTrajectoryManagerState,
-        canvasWidthRef.current,
-        canvasHeightRef.current,
+        trajectoryManagerStateRef.current,
+        trajectorySVGRefs,
         uuid()
       )
     );
@@ -78,9 +87,33 @@ const Field = () => {
     const time = state.context.currentTime;
     const trajSeq = globalTrajectoryManagerState.trajectorySequence;
 
+    // Set bot pose
     if (time !== -1 && trajSeq) {
       setBotPose(getPoseInTrajectorySequence(time, trajSeq));
     }
+
+    // Set current segment and inject into the svg ref so it doesnt have to be torn down
+    let timeThusFar = 0;
+    let currentSegmentIndex = 0;
+
+    if (trajSeq?.sequenceList) {
+      for (const [i, seg] of trajSeq.sequenceList.entries()) {
+        if (timeThusFar + seg.duration >= state.context.currentTime) {
+          currentSegmentIndex = i;
+
+          break;
+        } else {
+          timeThusFar += seg.duration;
+        }
+      }
+    }
+
+    trajectorySVGRefs.current.forEach((e, i) => {
+      if (e.classList.contains(styles.active))
+        e.classList.remove(styles.active);
+
+      if (currentSegmentIndex === i) e.classList.add(styles.active);
+    });
   }, [state.context.currentTime]);
 
   useEffect(() => {
@@ -107,6 +140,7 @@ const Field = () => {
     // return () => cancelAnimationFrame(requestAnimationFrameRef.current);
   }, []);
 
+  // TODO Mark for deletion
   function render() {
     if (canvasRef.current === null) return;
 
@@ -252,6 +286,7 @@ function getPoseInTrajectorySequence(
   }
 }
 
+// TODO Mark for deletion
 function drawTrajectorySequence(
   sequence: TrajectorySequence,
   context: CanvasRenderingContext2D,
@@ -337,12 +372,9 @@ function scaleCanvas(canvas: HTMLCanvasElement, width: number, height: number) {
 
 function buildSVGFromTrajectorySequence(
   globalTrajectory: GlobalTrajectoryState,
-  width: number,
-  height: number,
+  refList: RefObject<SVGGElement[]>,
   id: string
 ) {
-  console.log(globalTrajectory.trajectorySequence);
-
   const paths = globalTrajectory.trajectorySequence?.sequenceList.map(
     (step, i) => {
       if (step instanceof TrajectorySegment) {
@@ -372,12 +404,26 @@ function buildSVGFromTrajectorySequence(
           .join(" ");
 
         return (
-          <g key={`trajectory-path-segment-${id}-${i}`}>
+          <g
+            key={`trajectory-path-segment-${id}-${i}`}
+            className={styles.fieldSvgPath}
+            ref={(el) => {
+              if (el && refList.current) refList.current[i] = el;
+            }}
+          >
             <path
-              stroke="red"
+              className={styles.outline}
+              stroke={globalTrajectory.trajectorySequenceMeta.segmentColors[i]}
               fill="none"
               d={pathString}
-              strokeWidth="0.5"
+              shapeRendering="auto"
+              // shapeRendering="geometricPrecision"
+            />
+            <path
+              className={styles.mainPath}
+              stroke={globalTrajectory.trajectorySequenceMeta.segmentColors[i]}
+              fill="none"
+              d={pathString}
               shapeRendering="auto"
               // shapeRendering="geometricPrecision"
             />
