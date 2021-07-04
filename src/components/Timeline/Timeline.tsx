@@ -148,7 +148,7 @@ const Timeline = ({ className }: Props) => {
           </span>
           <span className="place-self-center translate-x-[1px]">/</span>
           <span className="place-self-start">
-            {trajSeq?.duration().toFixed(2)}
+            {trajSeq?.duration().toFixed(2)}s
           </span>
         </div>
       )}
