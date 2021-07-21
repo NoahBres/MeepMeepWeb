@@ -14,7 +14,6 @@
     "esprima": "^4.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "roadrunnerjs": "file:RoadRunnerJS/build/js/packages/RoadRunnerJS",
     "tailwindcss": "^2.2.4",
     "use-callback-ref": "^1.2.5",
     "use-resize-observer": "^7.0.0",
