@@ -182,8 +182,8 @@ export class QuinticSpline extends ParametricCurve {
       this.parameterize(tLo, tMid, vLo, vMid, depth + 1);
       this.parameterize(tMid, tHi, vMid, vHi, depth + 1);
     } else {
-      length += segmentLength;
-      this.sSamples.push(length);
+      this._length += segmentLength;
+      this.sSamples.push(this._length);
       this.tSamples.push(tHi);
     }
   }
@@ -210,7 +210,7 @@ export class QuinticSpline extends ParametricCurve {
 
   reparam(s: number): number {
     if (s <= 0.0) return 0.0;
-    if (s >= length) return 1.0;
+    if (s >= this._length) return 1.0;
 
     var lo = 0;
     var hi = this.sSamples.length;

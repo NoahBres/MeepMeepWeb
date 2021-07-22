@@ -1,4 +1,3 @@
-import { epsilonEquals } from "@roadrunnerjs/util";
 import { epsilonEquals, norm } from "roadrunnerjs/util";
 import { Pose2d, Vector2d } from "roadrunnerjs/geometry";
 import { normDelta } from "roadrunnerjs/util";

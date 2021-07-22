@@ -70,7 +70,7 @@ type TrajectoryBuilderConstructor1 = {
   startTangent: number;
   baseVelConstraint: TrajectoryVelocityConstraint;
   baseAccelConstraint: TrajectoryAccelerationConstraint;
-  resolution: number;
+  resolution?: number;
 };
 
 type TrajectoryBuilderConstructor2 = {

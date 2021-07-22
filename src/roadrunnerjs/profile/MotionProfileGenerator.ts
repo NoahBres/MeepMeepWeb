@@ -1,4 +1,4 @@
-import { epsilonEquals } from "roadrunnerjs/util";
+import { epsilonEquals, insert } from "roadrunnerjs/util";
 import { DoubleProgression, solveQuadratic } from "roadrunnerjs/util";
 import { AccelerationConstraint } from "./AccelerationConstraint";
 import { MotionProfile } from "./MotionProfile";
@@ -341,17 +341,6 @@ export function generateAccelProfile(
   }
 }
 
-function insert<T>(arr: T[], index: number, newItem: T) {
-  return [
-    // part of the array before the specified index
-    ...arr.slice(0, index),
-    // inserted item
-    newItem,
-    // part of the array after the specified index
-    ...arr.slice(index),
-  ];
-}
-
 /**
  * Generates a motion profile with dynamic maximum velocity and acceleration. Uses the algorithm described in
  * section 3.2 of [Sprunk2008.pdf](http://www2.informatik.uni-freiburg.de/~lau/students/Sprunk2008.pdf). Warning:
@@ -512,7 +501,7 @@ function forwardPass(
   let lastState = start;
   displacements
     .toArray()
-    .slice(0, displacements.size - 1)
+    .slice(0, -1)
     .forEach((displacement, i) => {
       const constraint = constraints[i];
 
