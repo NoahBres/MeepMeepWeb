@@ -7,4 +7,7 @@ module.exports = {
   transform: {
     "^.+\\.(ts|tsx)$": "ts-jest",
   },
+  moduleNameMapper: {
+    "^roadrunnerjs/(.*)$": "<rootDir>/src/roadrunnerjs/$1",
+  },
 };
