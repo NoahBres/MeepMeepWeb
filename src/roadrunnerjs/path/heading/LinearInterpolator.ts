@@ -7,7 +7,7 @@ import { HeadingInterpolator } from "./HeadingInterpolator";
  * @param startHeading start heading
  * @param angle angle to sweep through (can be greater than a revolution)
  */
-class LinearInterpolator extends HeadingInterpolator {
+export class LinearInterpolator extends HeadingInterpolator {
   constructor(
     private readonly startHeading: number,
     private readonly angle: number

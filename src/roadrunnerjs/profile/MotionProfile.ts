@@ -14,7 +14,7 @@ export class MotionProfile {
    * Returns the [MotionState] at time [t].
    */
   get(t: number): MotionState {
-    let remainingTime = Math.max(0, Math.min(t, this.duration));
+    let remainingTime = Math.max(0, Math.min(t, this.duration()));
 
     for (const segment of this.segments) {
       if (remainingTime <= segment.dt) return segment.get(remainingTime);
@@ -30,7 +30,7 @@ export class MotionProfile {
   /**
    * Returns the duration of the motion profile.
    */
-  get duration() {
+  duration() {
     return this.segments.reduce((acc, curr) => acc + curr.dt, 0);
   }
 
@@ -62,7 +62,7 @@ export class MotionProfile {
    * Returns the end [MotionState].
    */
   end() {
-    return this.get(this.duration);
+    return this.get(this.duration());
   }
 
   /**

@@ -33,4 +33,8 @@ export class MotionState {
       3
     )}, j=${this.j.toFixed(3)})`;
   }
+
+  zeroPosition() {
+    return new MotionState(0, this.v, this.a, this.j);
+  }
 }

@@ -28,7 +28,7 @@ type KnotConstructor2 = {
  * @param d2x x second derivative
  * @param d2y y second derivative
  */
-class Knot {
+export class Knot {
   readonly x: number;
   readonly y: number;
   readonly dx: number;

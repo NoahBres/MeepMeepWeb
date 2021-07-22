@@ -16,7 +16,7 @@ import { TangentInterpolator } from "./TangentInterpolator";
  * @param endHeadingDeriv start heading deriv (advanced)
  * @param endHeadingSecondDeriv start heading second deriv (advanced)
  */
-class SplineInterpolator extends HeadingInterpolator {
+export class SplineInterpolator extends HeadingInterpolator {
   private readonly tangentInterpolator = new TangentInterpolator();
   private headingSpline!: QuinticPolynomial;
 

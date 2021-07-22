@@ -2,7 +2,7 @@ import { norm } from "roadrunnerjs/util";
 import { HeadingInterpolator } from "./HeadingInterpolator";
 
 export class TangentInterpolator extends HeadingInterpolator {
-  constructor(private readonly offset: number = 0) {
+  constructor(readonly offset: number = 0) {
     super();
   }
 
