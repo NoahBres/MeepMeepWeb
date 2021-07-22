@@ -4,7 +4,7 @@
  *
  * https://github.com/acmerobotics/road-runner/blob/master/core/src/main/kotlin/com/acmerobotics/roadrunner/util/NanoClock.kt
  */
-export default abstract class NanoClock {
+export abstract class NanoClock {
   /**
    * Returns a [NanoClock] backed by [Date.now].
    */

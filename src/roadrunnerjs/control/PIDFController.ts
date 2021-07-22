@@ -1,5 +1,6 @@
-import { epsilonEquals } from "../util/MathUtil";
-import NanoClock from "../util/NanoClock";
+import { epsilonEquals } from "roadrunnerjs/util";
+import { NanoClock } from "roadrunnerjs/util";
+
 import { PIDCoefficients } from "./PIDCoefficients";
 
 type FeedForwardPosVelo = (position: number, velocity?: number) => number;
