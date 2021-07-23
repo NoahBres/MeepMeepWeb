@@ -1,4 +1,4 @@
-export * from "./AngularVelocityCosntraint";
+export * from "./AngularVelocityConstraint";
 export * from "./MecanumVelocityConstraint";
 export * from "./MinAccelerationConstraint";
 export * from "./MinVelocityConstraint";
