@@ -49,3 +49,27 @@ test("Trajectory Derivatives", () => {
   expectDerivEquals(y, velY, t.step, 0.05, 0.1);
   expectDerivEquals(velY, accelY, t.step, 0.05, 0.1);
 });
+
+test("Trajectory End", () => {
+  const endPose = new Pose2d({ x: 25.0, y: 25.0, heading: 0.0 });
+  for (let i = 0; i < 50; i++) {
+    const traj = new TrajectoryBuilder({
+      startPose: new Pose2d({ x: 0.0, y: 0.0, heading: 0.0 }),
+      startTangent: 0,
+      baseVelConstraint: VEL_CONSTRAINT,
+      baseAccelConstraint: ACCEL_CONSTRAINT,
+    })
+      .splineTo(
+        new Vector2d(50 * Math.random(), 50 * Math.random()),
+        2 * Math.PI * Math.random()
+      )
+      .splineTo(
+        new Vector2d(50 * Math.random(), 50 * Math.random()),
+        2 * Math.PI * Math.random()
+      )
+      .splineTo(endPose.vec(), endPose.heading)
+      .build();
+
+    expect(traj.end().epsilonEqualsHeading(endPose)).toBeTruthy();
+  }
+});
