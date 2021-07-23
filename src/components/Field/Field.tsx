@@ -25,7 +25,7 @@ import { TrajectorySequence } from "../../parser/trajectorysequence/TrajectorySe
 import { useGlobalTimelineManager } from "../../state/GlobalTimelineManager";
 import { toRadians } from "../../util";
 
-import { Pose2d } from "roadrunnerjs/geometry";
+import { Pose2d, Vector2d } from "roadrunnerjs/geometry";
 
 const FIELD_WIDTH = 144;
 const FIELD_HEIGHT = 144;

@@ -112,22 +112,20 @@ export class TrajectoryBuilder extends BaseTrajectoryBuilder<TrajectoryBuilder> 
       | TrajectoryBuilderConstructor2
       | TrajectoryBuilderConstructor3
   ) {
-    if ("startPose" in p) {
-      if ("startTangent" in p) {
-        super(p.startPose, p.startTangent, undefined, undefined);
-      } else {
-        super(
-          p.startPose,
-          norm(p.startPose.heading + (p.reversed ? Math.PI : 0)),
-          undefined,
-          undefined
-        );
-      }
+    super(
+      "startPose" in p ? p.startPose : undefined,
+      "startPose" in p
+        ? "startTangent" in p
+          ? p.startTangent
+          : norm(p.startPose.heading + (p.reversed ? Math.PI : 0))
+        : undefined,
+      "trajectory" in p ? p.trajectory : undefined,
+      "t" in p ? p.t : undefined
+    );
 
+    if ("startPose" in p) {
       this.start = new MotionState(0, 0, 0);
     } else {
-      super(undefined, undefined, p.trajectory, p.t);
-
       this.start = p.trajectory.profile.get(p.t).zeroPosition();
     }
 
