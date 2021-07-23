@@ -1,5 +1,10 @@
-import * as rr from "roadrunnerjs";
-
+import { Pose2d } from "roadrunnerjs/geometry";
+import {
+  AngularVelocityConstraint,
+  MecanumVelocityConstraint,
+  MinVelocityConstraint,
+  ProfileAccelerationConstraint,
+} from "roadrunnerjs/trajectory/constraints";
 import { toRadians } from "../util";
 import { StandardResult } from "./parser";
 import { TrajectorySequence } from "./trajectorysequence/TrajectorySequence";
@@ -19,11 +24,11 @@ export function buildTrajectorySequence(
   }
 ): StandardResult<TrajectorySequence> {
   const tsb = new TrajectorySequenceBuilder(
-    new rr.geometry.Pose2d(
-      parsedBuilder.startPose.x,
-      parsedBuilder.startPose.y,
-      parsedBuilder.startPose.heading
-    ),
+    new Pose2d({
+      x: parsedBuilder.startPose.x,
+      y: parsedBuilder.startPose.y,
+      heading: parsedBuilder.startPose.heading,
+    }),
     null,
     getVelocityConstraint(
       defaultConstraints.velConstraint.maxVel,
@@ -62,17 +67,12 @@ function getVelocityConstraint(
   maxAngularVel: number,
   trackWidth: number
 ) {
-  return new rr.trajectory.constraints.MinVelocityConstraint([
-    new rr.trajectory.constraints.AngularVelocityConstraint(maxAngularVel),
-    new rr.trajectory.constraints.MecanumVelocityConstraint(
-      maxVel,
-      trackWidth,
-      trackWidth,
-      1
-    ),
+  return new MinVelocityConstraint([
+    new AngularVelocityConstraint(maxAngularVel),
+    new MecanumVelocityConstraint(maxVel, trackWidth, trackWidth, 1),
   ]);
 }
 
 function getAccelerationConstraint(maxAccel: number) {
-  return new rr.trajectory.constraints.ProfileAccelerationConstraint(maxAccel);
+  return new ProfileAccelerationConstraint(maxAccel);
 }
