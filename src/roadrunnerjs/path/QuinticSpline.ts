@@ -216,7 +216,7 @@ export class QuinticSpline extends ParametricCurve {
     var hi = this.sSamples.length;
 
     while (lo <= hi) {
-      const mid = (hi + lo) / 2;
+      const mid = Math.floor((hi + lo) / 2);
 
       if (s < this.sSamples[mid]) {
         hi = mid - 1;
