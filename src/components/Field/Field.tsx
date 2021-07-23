@@ -5,7 +5,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import * as rr from "roadrunnerjs";
 
 import useResizeObserver from "use-resize-observer";
 import { v4 as uuid } from "uuid";
@@ -26,14 +25,16 @@ import { TrajectorySequence } from "../../parser/trajectorysequence/TrajectorySe
 import { useGlobalTimelineManager } from "../../state/GlobalTimelineManager";
 import { toRadians } from "../../util";
 
+import { Pose2d, Vector2d } from "roadrunnerjs/geometry";
+
 const FIELD_WIDTH = 144;
 const FIELD_HEIGHT = 144;
 const TRAJECTORY_SAMPLE_RESOLUTION = 0.1;
 
 const Field = () => {
   const [botDimen] = useState({ width: 18, height: 18 });
-  const [botPose, setBotPose] = useState<rr.geometry.Pose2d>(
-    new rr.geometry.Pose2d(0, 0, 0)
+  const [botPose, setBotPose] = useState<Pose2d>(
+    new Pose2d({ x: 0, y: 0, heading: 0 })
   );
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -245,14 +246,14 @@ function scaleInchesToPixels(
 }
 
 function fieldCoordToScreenCoord(
-  vector: rr.geometry.Vector2d,
+  vector: Vector2d,
   canvasWidth: number,
   canvasHeight: number
 ) {
-  const mirrorVec = new rr.geometry.Vector2d(vector.x, -vector.y);
+  const mirrorVec = new Vector2d(vector.x, -vector.y);
 
   return mirrorVec
-    .plus(new rr.geometry.Vector2d(FIELD_WIDTH / 2, FIELD_HEIGHT / 2))
+    .plus(new Vector2d(FIELD_WIDTH / 2, FIELD_HEIGHT / 2))
     .times(Math.min(canvasWidth, canvasHeight))
     .div(FIELD_WIDTH);
 }
@@ -260,7 +261,7 @@ function fieldCoordToScreenCoord(
 function getPoseInTrajectorySequence(
   time: number,
   trajSeq: TrajectorySequence
-): rr.geometry.Pose2d {
+): Pose2d {
   let segment: SequenceSegment | null = null;
   let segmentOffsetTime = 0;
 
@@ -280,16 +281,15 @@ function getPoseInTrajectorySequence(
   if (segment) {
     if (segment instanceof WaitSegment) return segment.startPose;
     else if (segment instanceof TurnSegment)
-      return segment.startPose.copy(
-        segment.startPose.x,
-        segment.startPose.y,
-        segment.motionProfile.get(segmentOffsetTime).x
-      );
+      return new Pose2d({
+        ...segment.startPose,
+        heading: segment.motionProfile.get(segmentOffsetTime).x,
+      });
     else if (segment instanceof TrajectorySegment)
       return segment.trajectory.get(segmentOffsetTime);
     else return trajSeq.end();
   } else {
-    return new rr.geometry.Pose2d(0, 0, 0);
+    return new Pose2d({ x: 0, y: 0, heading: 0 });
   }
 }
 
@@ -316,7 +316,7 @@ function drawTrajectorySequence(
         displacements.push((i / displacementSamples) * traj.path.length());
       }
 
-      const poses = displacements.map((i) => traj.path.getSingleParam(i));
+      const poses = displacements.map((i) => traj.path.get(i));
 
       context.beginPath();
       poses.slice(1).forEach((pose, i) => {
@@ -395,12 +395,16 @@ function buildSVGFromTrajectorySequence(
           displacements.push((i / displacementSamples) * traj.path.length());
         }
 
-        const poses = displacements.map((i) => traj.path.getSingleParam(i));
+        const poses = displacements.map((i) => traj.path.get(i));
 
         const pathString = poses
           .slice(1)
           .map((pose, i) => {
-            const coord = new rr.geometry.Pose2d(pose.x, -pose.y, pose.heading);
+            const coord = new Pose2d({
+              x: pose.x,
+              y: -pose.y,
+              heading: pose.heading,
+            });
 
             if (i === 0) {
               return `M ${coord.x},${coord.y}`;
