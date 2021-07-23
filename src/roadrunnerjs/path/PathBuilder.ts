@@ -21,12 +21,12 @@ abstract class PathBuilderException extends Error {}
  * Exception thrown when [PathBuilder] methods are chained illegally. This commonly arises when switching from
  * non-tangent interpolation back to tangent interpolation and when splicing paths.
  */
-class PathContinuityViolationException extends PathBuilderException {}
+export class PathContinuityViolationException extends PathBuilderException {}
 
 /**
  * Exception thrown when empty path segments are requested.
  */
-class EmptyPathSegmentException extends PathBuilderException {}
+export class EmptyPathSegmentException extends PathBuilderException {}
 
 type PathBuilderConstructor1 = {
   startPose: Pose2d;
