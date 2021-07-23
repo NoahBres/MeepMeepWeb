@@ -463,6 +463,23 @@ export function generateMotionProfile(
           backwardDx - thisIntersection,
         ]);
       }
+    } else {
+      // backward start lower
+      if (forwardEndState.v >= backwardEndState.v) {
+        // forward end lower
+        finalStates.push([backwardStartState, backwardDx]);
+      } else {
+        // forward end lower
+        const thisIntersection = intersection(
+          forwardStartState,
+          backwardStartState
+        );
+        finalStates.push([backwardStartState, thisIntersection]);
+        finalStates.push([
+          afterDisplacement(forwardStartState, thisIntersection),
+          forwardDx - thisIntersection,
+        ]);
+      }
     }
 
     i++;
@@ -472,16 +489,19 @@ export function generateMotionProfile(
   const motionSegments: MotionSegment[] = [];
   finalStates.forEach(([state, stateDx]) => {
     let dt = 0;
+
     if (epsilonEquals(state.a, 0)) {
       dt = stateDx / state.v;
     } else {
-      const discriminant = state.v * state.v - 2 * state.a * stateDx;
+      const discriminant = state.v * state.v + 2 * state.a * stateDx;
       if (epsilonEquals(discriminant, 0)) {
         dt = -state.v / state.a;
       } else {
         dt = (Math.sqrt(discriminant) - state.v) / state.a;
       }
     }
+
+    motionSegments.push(new MotionSegment(state, dt));
   });
 
   return new MotionProfile(motionSegments);
