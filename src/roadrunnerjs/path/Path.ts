@@ -31,17 +31,17 @@ export class Path {
     }
 
     let remainingDisplacement = s;
-    this.segments.forEach((segment) => {
+    for (const segment of this.segments) {
       if (remainingDisplacement <= segment.length()) {
         return [segment, remainingDisplacement];
       }
 
       remainingDisplacement -= segment.length();
-    });
+    }
 
     return [
       this.segments[this.segments.length - 1],
-      s - this.segments[this.segments.length - 1].length(),
+      this.segments[this.segments.length - 1].length(),
     ];
   }
 
