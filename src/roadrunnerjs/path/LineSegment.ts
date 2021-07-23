@@ -24,7 +24,7 @@ export class LineSegment extends ParametricCurve {
   }
 
   internalGet(t: number) {
-    return this.startVec.plus(this.diff).times(t);
+    return this.startVec.plus(this.diff.times(t));
   }
 
   internalDeriv(t: number) {
