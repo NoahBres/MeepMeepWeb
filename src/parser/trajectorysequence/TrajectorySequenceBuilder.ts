@@ -23,6 +23,7 @@ import { generateSimpleMotionProfile } from "roadrunnerjs/profile/MotionProfileG
 import { MotionState } from "roadrunnerjs/profile";
 import { norm } from "roadrunnerjs/util";
 import { MotionProfile } from "roadrunnerjs/profile/MotionProfile";
+import { PathContinuityViolationException } from "roadrunnerjs/path";
 
 export class TrajectorySequenceBuilder {
   [key: string]: any;
@@ -198,8 +199,6 @@ export class TrajectorySequenceBuilder {
     endPosition: Vector2d,
     endHeading: number
   ): TrajectorySequenceBuilder {
-    console.log(this.lastPose, endPosition);
-
     return this.addPath(() => {
       this.currentTrajectoryBuilder?.splineTo(
         endPosition,
@@ -259,8 +258,7 @@ export class TrajectorySequenceBuilder {
     try {
       callback();
     } catch (e) {
-      if (e.name === "PathContinuityViolationException") {
-        console.log("continuity excpetion");
+      if (e instanceof PathContinuityViolationException) {
         this.newPath();
         callback();
       } else {
@@ -476,13 +474,13 @@ export class TrajectorySequenceBuilder {
       })),
       ...displacementMarkers.map((e) => ({
         time: this.displacementToTime(
-          this.sequenceSegments,
+          sequenceSegments,
           e.producer(this.currentDisplacement)
         ),
         callback: e.callback,
       })),
       ...spatialMarkers.map((e) => ({
-        time: this.pointToTime(this.sequenceSegments, e.point),
+        time: this.pointToTime(sequenceSegments, e.point),
         callback: e.callback,
       })),
     ];
