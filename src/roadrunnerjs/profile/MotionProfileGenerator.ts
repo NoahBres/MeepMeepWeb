@@ -529,7 +529,7 @@ function forwardPass(
       const maxVel = constraint.maxVel;
       const maxAccel = constraint.maxAccel;
 
-      if (lastState.v > maxVel) {
+      if (lastState.v >= maxVel) {
         // the last velocity exceeds max vel so we just coast
         const state = new MotionState(displacement, maxVel, 0.0);
         forwardStates.push([state, dx]);
