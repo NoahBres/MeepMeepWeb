@@ -64,8 +64,16 @@ const Timeline = ({ className }: Props) => {
   const segmentIndicators = useMemo(
     () => (
       <div
-        className="absolute bottom-0 left-0 flex flex-row items-end w-full overflow-hidden rounded-b-md"
-        style={{ zIndex: 1 }}
+        className="absolute bottom-0 left-0 grid w-full overflow-hidden rounded-b-md"
+        style={{
+          zIndex: 1,
+          gridTemplateColumns: [
+            ...trajSeq!.sequenceList
+              .map((seg) => `${(seg.duration / trajSeq!.duration()) * 100}%`)
+              .slice(0, -1),
+            "auto",
+          ].join(" "),
+        }}
       >
         {(() => {
           let timeThusFar = 0;
@@ -118,7 +126,7 @@ const Timeline = ({ className }: Props) => {
                       : "opacity-50 hover:opacity-100"
                   }`}
                 style={{
-                  width: `${(seg.duration / trajSeq?.duration()) * 100}%`,
+                  // width: `${(seg.duration / trajSeq?.duration()) * 100}%`,
                   backgroundColor:
                     globalTrajectoryManagerState.trajectorySequenceMeta
                       .segmentColors[i],
