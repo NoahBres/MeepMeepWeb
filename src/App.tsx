@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/solid";
@@ -19,6 +19,7 @@ import { Timeline } from "./components/Timeline/Timeline";
 import { GlobalTimelineStateManager } from "./state/GlobalTimelineManager";
 
 const MIN_WIDTH_DEV_PANEL = 300;
+const MAX_PERCENTAGE_DEV_PANEL = 0.8;
 
 function App() {
   const [devPanelWidth, setDevPanelWidth] = useState(400);
@@ -30,8 +31,32 @@ function App() {
     height: fieldparentHeight,
   } = useResizeObserver<HTMLDivElement>();
 
+  const mainWidthRef = useRef<number | undefined>(undefined);
+  const { ref: mainRef } = useResizeObserver<HTMLDivElement>({
+    onResize: ({ width }) => {
+      mainWidthRef.current = width;
+      setDevPanelWidthClipped(0);
+    },
+  });
+
   const onEditorChange = (text: TokenPlus[]) => {
     console.log(text);
+  };
+
+  const setDevPanelWidthClipped = (deltaX: number) => {
+    setDevPanelWidth((prev) => {
+      const newVal = prev + deltaX;
+
+      return Math.floor(
+        Math.max(
+          Math.min(
+            newVal,
+            (mainWidthRef.current ?? 0) * MAX_PERCENTAGE_DEV_PANEL
+          ),
+          MIN_WIDTH_DEV_PANEL
+        )
+      );
+    });
   };
 
   return (
@@ -41,6 +66,7 @@ function App() {
           <main
             className="grid w-full h-screen"
             style={{ gridTemplateColumns: `1fr ${devPanelWidth}px` }}
+            ref={mainRef}
           >
             <div
               ref={fieldParentRef}
@@ -70,11 +96,7 @@ function App() {
               <DraggableDividerVertical
                 // Make the vertical divider a higher z-index than the horizontal (default z-index of 10)
                 style={{ zIndex: 20 }}
-                onDrag={({ deltaX }) =>
-                  setDevPanelWidth((prev) =>
-                    Math.max(prev + deltaX, MIN_WIDTH_DEV_PANEL)
-                  )
-                }
+                onDrag={({ deltaX }) => setDevPanelWidthClipped(deltaX)}
               />
             </div>
             <div
