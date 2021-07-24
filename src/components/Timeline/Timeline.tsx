@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, ReactNode } from "react";
+import React, { useEffect, useRef, useMemo, ReactNode, useState } from "react";
 
 import { RefreshIcon, TrendingUpIcon } from "@heroicons/react/outline";
 
@@ -11,6 +11,7 @@ import {
   WaitSegment,
 } from "../../parser/trajectorysequence/SequenceSegment";
 import { useGlobalTimelineManager } from "../../state/GlobalTimelineManager";
+import useResizeObserver from "use-resize-observer";
 
 type Props = {
   className?: string;
@@ -30,6 +31,25 @@ const Timeline = ({ className }: Props) => {
       : trajSeq?.sequenceList.length === 0
       ? "empty-trajectory-sequence"
       : "success";
+
+  const [containerBreakpoint, setContainerBreakpoint] = useState<string>(
+    styles.lg
+  );
+
+  useResizeObserver<HTMLDivElement>({
+    ref: containerRef,
+    onResize: ({ width }) => {
+      setContainerBreakpoint(
+        (() => {
+          if (width === undefined) return styles.lg;
+
+          if (width <= 360) return styles.sm;
+          else if (width <= 680) return styles.md;
+          else return styles.lg;
+        })()
+      );
+    },
+  });
 
   useEffect(() => {
     const onPress = (event: KeyboardEvent) => {
@@ -126,7 +146,7 @@ const Timeline = ({ className }: Props) => {
       ref={containerRef}
       tabIndex={0}
     >
-      <h1 className="absolute top-0 text-2xl font-extrabold tracking-wide text-blue-700 lg:text-3xl text-opacity-80 left-6 translate-y-[-1.3rem] lg:translate-y-[-1.48rem]">
+      <h1 className={`${styles.title} ${containerBreakpoint}`}>
         <button onClick={() => send("TOGGLE")}>
           {(() => {
             if (state.matches("paused")) {
@@ -142,7 +162,12 @@ const Timeline = ({ className }: Props) => {
         Timeline
       </h1>
       {state.context.duration !== -1 && (
-        <div className={styles.timeIndicator}>
+        <div
+          className={`
+          ${styles.timeIndicator}
+          ${containerBreakpoint}
+        `}
+        >
           <span className="font-extrabold text-orange-500 text-opacity-100 place-self-end">
             {state.context.currentTime.toFixed(2)}
           </span>

@@ -1,3 +1,24 @@
+.title {
+  @apply absolute top-0;
+  @apply font-extrabold tracking-wide;
+  @apply text-blue-700 text-opacity-80;
+}
+
+.title.sm {
+  @apply text-xl translate-y-[-1.12rem];
+  @apply left-3;
+}
+
+.title.md {
+  @apply text-2xl translate-y-[-1.3rem];
+  @apply left-6;
+}
+
+.title.lg {
+  @apply text-3xl translate-y-[-1.48rem];
+  @apply left-6;
+}
+
 .slider {
   @apply w-full;
 
@@ -21,12 +42,28 @@
   @apply grid place-items-center;
 
   @apply absolute top-0;
-  @apply lg:translate-x-1/2 right-6 lg:lg:right-1/2;
-  @apply translate-y-[-1.23rem] lg:translate-y-[-1.38rem];
-  @apply transition-transform hover:translate-y-[-1.5rem] lg:hover:translate-y-[-1.7rem];
+  @apply transition-transform;
 
   @apply text-gray-400 tabular-nums;
-  @apply text-xl font-semibold lg:text-2xl text-opacity-80;
+  @apply font-semibold text-opacity-80;
 
   grid-template-columns: 1fr 0.7rem 1fr;
+}
+
+.timeIndicator.sm {
+  @apply text-lg;
+  @apply right-3;
+  @apply translate-y-[-1.17rem] hover:translate-y-[-1.35rem];
+}
+
+.timeIndicator.md {
+  @apply text-2xl;
+  @apply right-6;
+  @apply translate-y-[-1.38rem] hover:translate-y-[-1.7rem];
+}
+
+.timeIndicator.lg {
+  @apply text-2xl;
+  @apply translate-x-1/2 right-1/2;
+  @apply translate-y-[-1.38rem] hover:translate-y-[-1.7rem];
 }
