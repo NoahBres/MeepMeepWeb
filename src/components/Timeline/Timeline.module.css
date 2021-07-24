@@ -67,3 +67,19 @@
   @apply translate-x-1/2 right-1/2;
   @apply translate-y-[-1.38rem] hover:translate-y-[-1.7rem];
 }
+
+.emptySequenceIndicator {
+  @apply text-center text-gray-600;
+}
+
+.emptySequenceIndicator.sm {
+  @apply text-sm;
+}
+
+.emptySequenceIndicator.md {
+  @apply text-base;
+}
+
+.emptySequenceIndicator.lg {
+  @apply text-lg;
+}

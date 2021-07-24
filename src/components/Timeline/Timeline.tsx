@@ -68,7 +68,7 @@ const Timeline = ({ className }: Props) => {
         style={{
           zIndex: 1,
           gridTemplateColumns: [
-            ...trajSeq!.sequenceList
+            ...(trajSeq?.sequenceList ?? [])
               .map((seg) => `${(seg.duration / trajSeq!.duration()) * 100}%`)
               .slice(0, -1),
             "auto",
@@ -207,9 +207,15 @@ const Timeline = ({ className }: Props) => {
         ) : (
           <div className="flex items-center justify-center w-full h-full">
             {errorState === "no-trajectory-sequence" ? (
-              <p className="text-lg text-gray-600">no trajectory sequence 😔</p>
+              <p
+                className={`${styles.emptySequenceIndicator} ${containerBreakpoint}`}
+              >
+                no trajectory sequence 😔
+              </p>
             ) : errorState === "empty-trajectory-sequence" ? (
-              <p className="text-lg text-gray-600">
+              <p
+                className={`${styles.emptySequenceIndicator} ${containerBreakpoint}`}
+              >
                 empty trajectory sequence 😭
               </p>
             ) : null}
