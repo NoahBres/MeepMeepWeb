@@ -4,7 +4,6 @@ import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/solid";
 
 import Editor from "./components/Editor/Editor";
-import EditorConsole from "./components/EditorConsole";
 
 import { TokenPlus } from "./parser/tokenizer";
 import {
@@ -170,7 +169,6 @@ function App() {
                   </Menu>
                 </div>
                 <Editor onChange={onEditorChange} className="mb-10" />
-                <EditorConsole content="Status: Success!" closedHeight={40} />
                 <DraggableDividerHorizontal
                   onDrag={({ deltaY }) =>
                     setCodePanelHeight((prev) => Math.max(prev + deltaY, 0))

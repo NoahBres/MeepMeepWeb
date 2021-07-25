@@ -4,14 +4,27 @@ import React, {
   useEffect,
   useReducer,
 } from "react";
-import { ArrowSmUpIcon, CheckCircleIcon } from "@heroicons/react/outline";
+import {
+  ArrowSmUpIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+} from "@heroicons/react/outline";
 
-import { DraggableDividerHorizontal } from "./DraggableDivider";
-import { AbsoluteDragEvent } from "../absolute-draggable";
+import { DraggableDividerHorizontal } from "../DraggableDivider";
+import { AbsoluteDragEvent } from "../../absolute-draggable";
+
+export type EditorConsoleState =
+  | {
+      state: "error";
+      errors: string[];
+    }
+  | { state: "success" }
+  | { state: "loading" }
+  | { state: "idle" };
 
 type Props = {
+  consoleState: EditorConsoleState;
   closedHeight: number;
-  content: string;
 };
 
 type ArrowProps = {
@@ -99,7 +112,7 @@ const HeightStateReducer = (
   }
 };
 
-const EditorConsole = ({ closedHeight, content }: Props) => {
+const EditorConsole = ({ closedHeight, consoleState }: Props) => {
   const [isTopArrowsHovering, setIsTopArrowHovering] = useState(false);
   const [isBottomArrowsHovering, setIsBottomArrowHovering] = useState(false);
 
@@ -184,28 +197,65 @@ const EditorConsole = ({ closedHeight, content }: Props) => {
         onMouseUp={onMouseUp}
         anchor="top"
       />
-      <div
-        className="relative flex items-center justify-between w-full"
-        style={{ height: `${closedHeight}px` }}
-      >
-        <ArrowBtn
-          onClick={clickExpandArrow}
-          onMouseEnter={() => setIsTopArrowHovering(true)}
-          onMouseLeave={() => setIsTopArrowHovering(false)}
-          isOpen={isOpen}
-          isLinkedHover={isTopArrowsHovering}
-        />
-        <span className="flex items-center flex-grow text-sm text-gray-900">
-          <CheckCircleIcon className="w-5 h-5 mr-1 text-green-500 bg-white rounded-full" />
-          {content}
-        </span>
-        <ArrowBtn
-          onClick={clickExpandArrow}
-          onMouseEnter={() => setIsTopArrowHovering(true)}
-          onMouseLeave={() => setIsTopArrowHovering(false)}
-          isOpen={isOpen}
-          isLinkedHover={isTopArrowsHovering}
-        />
+      <div className="flex flex-col w-full h-full">
+        <div
+          className="relative flex items-center justify-between w-full"
+          style={{ height: `${closedHeight}px` }}
+        >
+          <ArrowBtn
+            onClick={clickExpandArrow}
+            onMouseEnter={() => setIsTopArrowHovering(true)}
+            onMouseLeave={() => setIsTopArrowHovering(false)}
+            isOpen={isOpen}
+            isLinkedHover={isTopArrowsHovering}
+          />
+          <span className="flex items-center flex-grow text-sm text-gray-900">
+            {(() => {
+              switch (consoleState.state) {
+                case "error":
+                  return (
+                    <>
+                      <ExclamationCircleIcon className="w-5 h-5 mr-1 text-red-500 rounded-full" />
+                      {consoleState.errors.length} error
+                      {consoleState.errors.length > 1 && "s"}
+                    </>
+                  );
+                case "success":
+                  return (
+                    <>
+                      <CheckCircleIcon className="w-5 h-5 mr-1 text-green-500 rounded-full" />
+                      Success
+                    </>
+                  );
+                case "idle":
+                  return (
+                    <span className="w-full text-center text-gray-500">
+                      no input given 😕
+                    </span>
+                  );
+                case "loading":
+                  return "Loading";
+              }
+            })()}
+          </span>
+          <ArrowBtn
+            onClick={clickExpandArrow}
+            onMouseEnter={() => setIsTopArrowHovering(true)}
+            onMouseLeave={() => setIsTopArrowHovering(false)}
+            isOpen={isOpen}
+            isLinkedHover={isTopArrowsHovering}
+          />
+        </div>
+        <div className="relative flex-grow w-full">
+          <ul className="absolute inset-0 px-3 space-y-2 overflow-scroll">
+            {consoleState.state === "error" &&
+              consoleState.errors.map((e, i) => (
+                <li key={i} className="text-sm text-gray-900 whitespace-nowrap">
+                  {e}
+                </li>
+              ))}
+          </ul>
+        </div>
       </div>
       <div
         className={`absolute bottom-0 flex justify-between w-full ${

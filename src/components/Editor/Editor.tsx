@@ -11,6 +11,8 @@ import { toRadians } from "../../util";
 
 import styles from "./Editor.module.css";
 
+import EditorConsole, { EditorConsoleState } from "./EditorConsole";
+
 type Props = {
   onChange?: (text: TokenPlus[]) => void;
   className?: string;
@@ -25,6 +27,10 @@ const Editor = ({ onChange, className }: Props) => {
   const [sourceText, setSourceText] = useState("");
 
   const [tokenizedText, setTokenizedText] = useState<TokenPlus[]>([]);
+
+  const [parseState, setParseState] = useState<EditorConsoleState>({
+    state: "idle",
+  });
 
   const temporaryVelConstraint: TrajectoryVelocityConstraintType = {
     maxVel: 50,
@@ -96,6 +102,14 @@ const Editor = ({ onChange, className }: Props) => {
           trajectorySequence: parseResult.payload[0],
         });
       }
+
+      setParseState({ state: "success" });
+    } else {
+      if (parseResult.errors[0] && parseResult.errors[0] === "Input empty") {
+        setParseState({ state: "idle" });
+      } else {
+        setParseState({ state: "error", errors: parseResult.errors });
+      }
     }
   }, [tokenizedText]);
 
@@ -112,26 +126,29 @@ const Editor = ({ onChange, className }: Props) => {
   });
 
   return (
-    <div className={`relative w-full h-full ${className}`}>
-      <pre
-        className={styles.highlighter}
-        aria-hidden="true"
-        ref={highlightingRef}
-      >
-        <code>{renderedText}</code>
-      </pre>
-      <textarea
-        placeholder="Paste your code here!"
-        className={styles.editor}
-        spellCheck="false"
-        value={sourceText}
-        onChange={(evt) => {
-          setSourceText(evt.target.value);
-        }}
-        wrap="off"
-        ref={textAreaRef}
-      />
-    </div>
+    <>
+      <div className={`relative w-full h-full ${className}`}>
+        <pre
+          className={styles.highlighter}
+          aria-hidden="true"
+          ref={highlightingRef}
+        >
+          <code>{renderedText}</code>
+        </pre>
+        <textarea
+          placeholder="Paste your code here!"
+          className={styles.editor}
+          spellCheck="false"
+          value={sourceText}
+          onChange={(evt) => {
+            setSourceText(evt.target.value);
+          }}
+          wrap="off"
+          ref={textAreaRef}
+        />
+      </div>
+      <EditorConsole closedHeight={40} consoleState={parseState} />
+    </>
   );
 };
 

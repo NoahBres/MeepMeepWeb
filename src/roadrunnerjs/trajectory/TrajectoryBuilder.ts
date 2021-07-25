@@ -413,6 +413,7 @@ export class TrajectoryBuilder extends BaseTrajectoryBuilder<TrajectoryBuilder> 
     spatialMarkers: SpatialMarker[]
   ): Trajectory {
     const goal = new MotionState(path.length(), 0.0, 0.0);
+
     return generateTrajectory(
       path,
       new PiecewiseVelocityConstraint(
